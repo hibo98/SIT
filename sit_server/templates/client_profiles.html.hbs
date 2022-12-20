@@ -1,0 +1,33 @@
+{{> main-top title="Clients"}}
+<div class="client-table">
+    <!--<h1>Profile von </h1>-->
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Gesundheits-Zustand</th>
+                <th title="Konfiguriert;Pfad;Präferenz">Roaming</th>
+                <th>Zuletzt benutzt</th>
+                <th>Letzter Download<br/></th>
+                <th>Letzter Upload</th>
+                <th>Zustand</th>
+                <th>Größe</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each profiles}}
+                <tr>
+                    <td><a href="/profile/{{this.[1].sid}}">{{this.[1].username}}</a></td>
+                    <td>{{this.[0].health_status}}</td>
+                    <td>{{this.[0].roaming_path}}<br/>{{this.[0].roaming_preference}}</td>
+                    <td>{{this.[0].last_use_time}}</td>
+                    <td>{{this.[0].last_download_time}}</td>
+                    <td>{{this.[0].last_upload_time}}</td>
+                    <td>{{this.[0].status}}</td>
+                    <td>{{#if this.[0].size}} {{this.[0].size}} Byte{{/if}}</td>
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> main-bottom}}

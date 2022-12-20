@@ -1,0 +1,1 @@
+ALTER TABLE "client" DROP CONSTRAINT "uuid";

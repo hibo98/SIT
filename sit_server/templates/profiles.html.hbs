@@ -1,0 +1,23 @@
+{{> main-top title="Profile"}}
+<div class="profile-table">
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Anzahl Computer mit diesem Profil</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each profiles}}
+                <tr>
+                    <td><a href="/profile/{{this.sid}}">{{this.username}}</a></td>
+                    <td>{{this.count}}</td>
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> main-bottom}}

@@ -1,0 +1,1 @@
+ALTER TABLE "processor" RENAME COLUMN "address_width" TO "address_with";

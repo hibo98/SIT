@@ -1,0 +1,27 @@
+{{> main-top title="Software"}}
+<div class="software-table">
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Hersteller</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each software}}
+            <tr>
+                <td>{{this.id}}</td>
+                <td>{{this.name}}</td>
+                <td>{{this.version}}</td>
+                <td>{{this.publisher}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> main-bottom}}

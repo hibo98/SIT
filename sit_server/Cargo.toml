@@ -1,0 +1,19 @@
+[package]
+name = "sit_server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+rocket = { version = "0.5.0-rc.2", features = ["json", "uuid"] }
+rocket_dyn_templates = { version = "0.1.0-rc.2", features = ["handlebars"]}
+diesel = { version = "2", features = ["postgres","uuid","r2d2","numeric","chrono"] }
+diesel_migrations = { version = "2", features = ["postgres"] }
+dotenv = "0.15"
+uuid = { version = "1", features = ["v4","serde"] }
+sit_lib = { path = "../sit_lib" }
+anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["serde"] }
+bigdecimal = { version = "0.3", features = ["serde"] }

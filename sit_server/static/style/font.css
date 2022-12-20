@@ -1,0 +1,23 @@
+@font-face {
+    font-family: SanukWebPro;
+    src: url(/static/font/SanukWebPro.eot);
+    font-weight: 400
+}
+
+@font-face {
+    font-family: SanukWebPro;
+    src: url(/static/font/SanukWebPro-Bold.eot);
+    font-weight: 700
+}
+
+@font-face {
+    font-family: SanukWebPro;
+    src: url(/static/font/SanukWebPro.woff) format("woff");
+    font-weight: 400
+}
+
+@font-face {
+    font-family: SanukWebPro;
+    src: url(/static/font/SanukWebPro-Bold.woff) format("woff");
+    font-weight: 700
+}

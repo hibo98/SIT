@@ -1,0 +1,24 @@
+cargo-features = ["per-package-target"]
+
+[package]
+name = "sit_client"
+version = "0.1.0"
+edition = "2021"
+default-target = "x86_64-pc-windows-gnu"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+wmi = "0.11"
+winreg = "0.10"
+sit_lib = { path = "../sit_lib" }
+reqwest = { version = "0.11", features = ["json", "blocking"] }
+job_scheduler = "1"
+anyhow = "1"
+uuid = { version = "1", features = ["serde"] }
+windows-service = "0.5"
+chrono = { version = "0.4", default-features = false, features = ["serde"] }
+powershell_script = "1"
+clap = "4"

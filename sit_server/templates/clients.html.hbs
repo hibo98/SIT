@@ -1,0 +1,25 @@
+{{> main-top title="Clients"}}
+<div class="client-table">
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>OS</th>
+                <th>OS-Version</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each clients}}
+                <tr>
+                    <td><a href="/clients/{{this.[0].uuid}}">{{this.[1].computer_name}}.{{this.[1].domain}}</a></td>
+                    <td>{{this.[1].os}}</td>
+                    <td>{{this.[1].os_version}}</td>
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> main-bottom}}

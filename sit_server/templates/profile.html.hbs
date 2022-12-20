@@ -1,0 +1,35 @@
+{{> main-top title="Profile"}}
+<div class="profile-table">
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Computer</th>
+                <th>Gesundheits-Zustand</th>
+                <th title="Konfiguriert;Pfad;Präferenz">Roaming</th>
+                <th>Zuletzt benutzt</th>
+                <th>Letzter Download<br/></th>
+                <th>Letzter Upload</th>
+                <th>Zustand</th>
+                <th>Größe</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each profile}}
+                <tr>
+                    <td><a href="/clients/{{this.[2].uuid}}">{{this.[3].computer_name}}.{{this.[3].domain}}</a></td>
+                    <td>{{this.[0].health_status}}</td>
+                    <td>{{this.[0].roaming_path}}<br/>{{this.[0].roaming_preference}}</td>
+                    <td>{{this.[0].last_use_time}}</td>
+                    <td>{{this.[0].last_download_time}}</td>
+                    <td>{{this.[0].last_upload_time}}</td>
+                    <td>{{this.[0].status}}</td>
+                    <td>{{#if this.[0].size}} {{this.[0].size}} Byte{{/if}}</td>
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> main-bottom}}

@@ -1,0 +1,14 @@
+[workspace]
+
+members = [
+    "sit_client",
+    "sit_lib",
+    "sit_server",
+]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+opt-level = "z"
