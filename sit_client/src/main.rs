@@ -10,7 +10,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use clap::{arg, value_parser, Command, ArgAction};
-use job_scheduler::{Job, JobScheduler};
+use job_scheduler_ng::{Job, JobScheduler};
 use windows_service::{service_control_handler, service_dispatcher};
 use windows_service::service::{ServiceAccess, ServiceControl, ServiceControlAccept, ServiceErrorControl, ServiceExitCode, ServiceInfo, ServiceStartType, ServiceState, ServiceStatus, ServiceType};
 use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
@@ -134,22 +134,23 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     let mut scheduler = JobScheduler::new();
-    let com_con = COMLibrary::new()?;
-    let wmi_con1 = WMIConnection::new(com_con)?;
-    let wmi_con2 = WMIConnection::new(com_con)?;
-    scheduler.add(Job::new("0 * * * * * *".parse().unwrap(), move || {
-        let os_info = OsInfo::get_os_info(&wmi_con1);
+    scheduler.add(Job::new("0 * * * * * *".parse().unwrap(),  || {
+        let com_con = COMLibrary::new().unwrap();
+        let wmi_con = WMIConnection::new(com_con).unwrap();
+        let os_info = OsInfo::get_os_info(&wmi_con);
         if let Ok(os_info) = os_info {
             Server::register(&os_info.computer_name).unwrap();
             Server::os(&os_info).unwrap();
         }
     }));
-    scheduler.add(Job::new("0 1/5 * * * * *".parse().unwrap(), move || {
-        let hardware_info = Hardware::get_hardware_info(&wmi_con2);
+    scheduler.add(Job::new("0 1/5 * * * * *".parse().unwrap(), || {
+        let com_con = COMLibrary::new().unwrap();
+        let wmi_con = WMIConnection::new(com_con).unwrap();
+        let hardware_info = Hardware::get_hardware_info(&wmi_con);
         if let Ok(hardware_info) = hardware_info {
             Server::hardware(&hardware_info).unwrap();
         }
-        let profiles = OsInfo::get_user_profiles(&wmi_con2);
+        let profiles = OsInfo::get_user_profiles(&wmi_con);
         if let Ok(profiles) = profiles {
             Server::profiles(&profiles).unwrap();
         }

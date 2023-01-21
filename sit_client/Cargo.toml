@@ -15,7 +15,7 @@ wmi = "0.11"
 winreg = "0.10"
 sit_lib = { path = "../sit_lib" }
 reqwest = { version = "0.11", features = ["json", "blocking"] }
-job_scheduler = "1"
+job_scheduler_ng = "2"
 anyhow = "1"
 uuid = { version = "1", features = ["serde"] }
 windows-service = "0.5"
