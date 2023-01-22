@@ -29,3 +29,13 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
         Template::render("client_profiles", context! {})
     }
 }
+
+#[get("/<uuid>/software")]
+pub fn software(database: &State<Database>, uuid: Uuid) -> Template {
+    let client_software = database.get_client_software(uuid);
+    if let Ok(client_software) = client_software {
+        Template::render("client_software", context! { software: client_software })
+    } else {
+        Template::render("client_software", context! {})
+    }
+}

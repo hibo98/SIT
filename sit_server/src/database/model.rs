@@ -46,7 +46,6 @@ pub struct UpdateOsInfo<'a> {
 pub struct SoftwareInfo {
     pub id: i32,
     pub name: String,
-    pub version: String,
     pub publisher: Option<String>,
 }
 
@@ -54,8 +53,35 @@ pub struct SoftwareInfo {
 #[diesel(table_name = software_info)]
 pub struct NewSoftwareInfo<'a> {
     pub name: &'a String,
-    pub version: &'a String,
     pub publisher: Option<&'a String>,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct SoftwareVersion {
+    pub id: i32,
+    pub software_id: i32,
+    pub version: String,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct SoftwareVersionWithCount {
+    pub id: i32,
+    pub software_id: i32,
+    pub version: String,
+    pub count: i64,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = software_version)]
+pub struct NewSoftwareVersion<'a> {
+    pub software_id: &'a i32,
+    pub version: &'a String,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct SoftwareList {
+    pub client_id: i32,
+    pub software_id: i32,
 }
 
 #[derive(Insertable)]

@@ -8,6 +8,7 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sql_types::{Nullable, BigInt};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dotenv::dotenv;
 use sit_lib::hardware::HardwareInfo;
 use sit_lib::os::{UserProfiles, WinOsInfo};
@@ -22,6 +23,8 @@ mod schema;
 
 sql_function! { fn coalesce(x: Nullable<BigInt>, y: BigInt) -> BigInt; }
 
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
+
 pub struct Database {
     pool: Pool<ConnectionManager<PgConnection>>,
 }
@@ -31,6 +34,11 @@ impl Database {
         dotenv().ok();
 
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+        PgConnection::establish(&database_url)
+            .unwrap_or_else(|_| panic!("Error connection to {}", database_url))
+            .run_pending_migrations(MIGRATIONS)
+            .expect("Migrations failed");
 
         let manager = ConnectionManager::<PgConnection>::new(database_url);
 
@@ -203,11 +211,11 @@ impl Database {
 
     pub fn update_software_lib(&self, client_id: i32, software_lib: SoftwareLibrary) -> Result<()> {
         let mut conn = self.pool.get()?;
-        let sl: Vec<SoftwareInfo> = software_lib
+        let sl: Vec<SoftwareVersion> = software_lib
             .software
             .iter()
             .map(|e| self.get_software_entry(&e.name, &e.version, e.publisher.clone()))
-            .filter_map(|r: Result<SoftwareInfo>| r.ok())
+            .filter_map(|r: Result<SoftwareVersion>| r.ok())
             .collect();
         conn.transaction::<(), diesel::result::Error, _>(|c| {
             diesel::delete(software_list::table)
@@ -311,33 +319,57 @@ impl Database {
         name: &String,
         version: &String,
         publisher: Option<String>,
-    ) -> Result<SoftwareInfo> {
+    ) -> Result<SoftwareVersion> {
         let publisher = &publisher.unwrap_or("".to_string());
         let mut conn = self.pool.get()?;
-        let entries: Vec<SoftwareInfo> = software_info::table
+        let entries: Option<SoftwareInfo> = software_info::table
             .filter(software_info::name.eq(name))
-            .filter(software_info::version.eq(version))
             .filter(software_info::publisher.eq(publisher))
-            .load::<SoftwareInfo>(&mut conn)?;
-        if let Some(entry) = entries.first().cloned() {
+            .first::<SoftwareInfo>(&mut conn).optional()?;
+        let software_info = if let Some(entry) = entries {
             Ok(entry)
         } else {
-            self.create_software_entry(name, version, publisher)
+            self.create_software_entry(name, publisher)
+        };
+        if let Ok(software_info) = software_info {
+            let software_version: Option<SoftwareVersion> = software_version::table
+                .filter(software_version::software_id.eq(software_info.id))
+                .filter(software_version::version.eq(version))
+                .first(&mut conn).optional()?;
+            if let Some(software_version) = software_version  {
+                Ok(software_version)
+            } else {
+                self.create_software_version(software_info.id, version)
+            }
+        } else {
+            Err(software_info.unwrap_err())
         }
     }
 
     fn create_software_entry(
         &self,
         name: &String,
-        version: &String,
         publisher: &String,
     ) -> Result<SoftwareInfo> {
         let mut conn = self.pool.get()?;
         Ok(diesel::insert_into(software_info::table)
             .values(NewSoftwareInfo {
                 name,
-                version,
                 publisher: Some(publisher),
+            })
+            .get_result(&mut conn)?)
+    }
+
+    fn create_software_version(
+        &self,
+        software_id: i32,
+        version: &String
+    ) -> Result<SoftwareVersion> {
+        let mut conn = self.pool.get()?;
+        Ok(diesel::insert_into(software_version::table)
+            .values(NewSoftwareVersion {
+                software_id: &software_id,
+                version,
             })
             .get_result(&mut conn)?)
     }
@@ -349,11 +381,40 @@ impl Database {
             .load::<(Client, Option<OsInfo>)>(&mut conn)?)
     }
 
-    pub fn get_software_info(&self) -> Result<Vec<SoftwareInfo>> {
+    pub fn get_software_list(&self) -> Result<Vec<SoftwareInfo>> {
         let mut conn = self.pool.get()?;
         Ok(software_info::table
             .order_by(software_info::name)
             .load::<SoftwareInfo>(&mut conn)?)
+    }
+
+    pub fn get_software_info(&self, id: i32) -> Result<(SoftwareInfo, Vec<SoftwareVersionWithCount>)> {
+        let mut conn = self.pool.get()?;
+        let software_info = software_info::table.filter(software_info::id.eq(id)).get_result::<SoftwareInfo>(&mut conn)?;
+        let software_versions = software_version::table
+            .select((software_version::id, software_version::software_id, software_version::version, coalesce(software_list::table.filter(software_list::software_id.eq(software_version::id)).count().single_value(), 0)))
+            .filter(software_version::software_id.eq(id))
+            .load::<SoftwareVersionWithCount>(&mut conn)?;
+        Ok((software_info, software_versions))
+    }
+
+    pub fn get_software_computer_list(&self, id: i32) -> Result<(SoftwareInfo, Vec<(SoftwareList, SoftwareVersion, (Client, OsInfo))>)> {
+        let mut conn = self.pool.get()?;
+        let software_info = software_info::table.filter(software_info::id.eq(id)).get_result::<SoftwareInfo>(&mut conn)?;
+        let software_computer_list: Vec<(SoftwareList, SoftwareVersion, (Client, OsInfo))> = software_list::table
+                .filter(software_version::software_id.eq(id))
+                .inner_join(software_version::table)
+                .inner_join(client::table.inner_join(os_info::table))
+                .load::<(SoftwareList, SoftwareVersion, (Client, OsInfo))>(&mut conn)?;
+        Ok((software_info, software_computer_list))
+    }
+
+    pub fn get_software_version_list(&self, version_id: i32) -> Result<(SoftwareInfo, SoftwareVersion, Vec<(SoftwareList, (Client, OsInfo))>)> {
+        let mut conn = self.pool.get()?;
+        let software_info = software_info::table.filter(software_info::id.nullable().eq(software_version::table.select(software_version::software_id).filter(software_version::id.eq(version_id)).single_value())).get_result::<SoftwareInfo>(&mut conn)?;
+        let software_version = software_version::table.filter(software_version::id.eq(version_id)).get_result::<SoftwareVersion>(&mut conn)?;
+        let software_versions_list: Vec<(SoftwareList, (Client, OsInfo))> = software_list::table.filter(software_list::software_id.eq(version_id)).inner_join(client::table.inner_join(os_info::table)).load::<(SoftwareList, (Client, OsInfo))>(&mut conn)?;
+        Ok((software_info, software_version, software_versions_list))
     }
 
     pub fn get_client_info(&self, uuid: Uuid) -> Result<(Client, Option<OsInfo>)> {
@@ -377,6 +438,17 @@ impl Database {
             .load::<(UserProfile, User)>(&mut conn)?)
     }
 
+    pub fn get_client_software(&self, uuid: Uuid) -> Result<Vec<(SoftwareList, Client, (SoftwareVersion, SoftwareInfo))>> {
+        let mut conn = self.pool.get()?;
+        let software_version_list: Vec<(SoftwareList, Client, (SoftwareVersion, SoftwareInfo))> = software_list::table
+                .filter(client::uuid.eq(uuid))
+                .inner_join(client::table)
+                .inner_join(software_version::table.inner_join(software_info::table))
+                .order_by(software_info::name)
+                .load::<(SoftwareList, Client, (SoftwareVersion, SoftwareInfo))>(&mut conn)?;
+        Ok(software_version_list)
+    }
+
     pub fn get_profiles(&self) -> Result<Vec<UserWithProfileCount>> {
         let mut conn = self.pool.get()?;
         Ok(user::table.select(
@@ -395,7 +467,6 @@ impl Database {
             .filter(user::sid.eq(sid))
             .inner_join(user::table)
             .inner_join(client::table)
-            //.inner_join(os_info::table)
             .left_join(os_info::table.on(os_info::client_id.eq(userprofile::client_id)))
             .load::<(UserProfile, User, Client, Option<OsInfo>)>(&mut conn)?)
     }

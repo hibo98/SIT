@@ -97,7 +97,6 @@ diesel::table! {
     software_info (id) {
         id -> Int4,
         name -> Text,
-        version -> Text,
         publisher -> Nullable<Text>,
     }
 }
@@ -106,6 +105,14 @@ diesel::table! {
     software_list (client_id, software_id) {
         client_id -> Int4,
         software_id -> Int4,
+    }
+}
+
+diesel::table! {
+    software_version (id) {
+        id -> Int4,
+        software_id -> Int4,
+        version -> Text,
     }
 }
 
@@ -143,7 +150,8 @@ diesel::joinable!(network_adapter_ip -> network_adapter (adapter_id));
 diesel::joinable!(os_info -> client (client_id));
 diesel::joinable!(processor -> client (client_id));
 diesel::joinable!(software_list -> client (client_id));
-diesel::joinable!(software_list -> software_info (software_id));
+diesel::joinable!(software_list -> software_version (software_id));
+diesel::joinable!(software_version -> software_info (software_id));
 diesel::joinable!(userprofile -> client (client_id));
 diesel::joinable!(userprofile -> user (user_id));
 
@@ -160,6 +168,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     processor,
     software_info,
     software_list,
+    software_version,
     user,
     userprofile,
 );

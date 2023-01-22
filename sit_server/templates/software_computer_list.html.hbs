@@ -1,0 +1,25 @@
+{{> main-top title="Software"}}
+<div class="software-table">
+    <h1>{{software_info.name}}</h1>
+    <p>Publisher: {{software_info.publisher}}
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Computer</th>
+                <th>Version</th>
+            </tr>
+        </thead>
+        <tbody>
+        {{#each software_computer_list}}
+            <tr>
+                <td><a href="/clients/{{this.[2].[0].uuid}}">{{this.[2].[1].computer_name}}</a></td>
+                <td><a href="/software/version/{{this.[1].id}}">{{this.[1].version}}</a></td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> main-bottom}}
