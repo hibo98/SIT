@@ -124,7 +124,6 @@ Write-Host $obj.Sum"#,
         )?;
         let o = output.stdout().unwrap();
         let o = o.trim();
-        println!("{}", o);
         let sum = o.parse::<u64>()?;
         Ok(sum)
     }
