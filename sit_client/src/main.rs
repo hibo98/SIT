@@ -134,8 +134,9 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     let mut scheduler = JobScheduler::new();
+    COMLibrary::new()?;
     scheduler.add(Job::new("0 * * * * * *".parse().unwrap(),  || {
-        let com_con = COMLibrary::new().unwrap();
+        let com_con = COMLibrary::without_security().unwrap();
         let wmi_con = WMIConnection::new(com_con).unwrap();
         let os_info = OsInfo::get_os_info(&wmi_con);
         if let Ok(os_info) = os_info {
@@ -144,7 +145,7 @@ fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
         }
     }));
     scheduler.add(Job::new("0 1/5 * * * * *".parse().unwrap(), || {
-        let com_con = COMLibrary::new().unwrap();
+        let com_con = COMLibrary::without_security().unwrap();
         let wmi_con = WMIConnection::new(com_con).unwrap();
         let hardware_info = Hardware::get_hardware_info(&wmi_con);
         if let Ok(hardware_info) = hardware_info {
