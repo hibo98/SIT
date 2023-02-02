@@ -30,7 +30,11 @@ impl Server {
 
     pub fn os(os_info: &WinOsInfo) -> Result<()> {
         let _request = reqwest::blocking::Client::new()
-            .post(format!("{}/api/v1/os/{}", Config::get_web_api()?, Config::get_uuid()?.unwrap()))
+            .post(format!(
+                "{}/api/v1/os/{}",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
             .json(os_info)
             .send();
         Ok(())
@@ -38,7 +42,11 @@ impl Server {
 
     pub fn hardware(hardware_info: &HardwareInfo) -> Result<()> {
         let _request = reqwest::blocking::Client::new()
-            .post(format!("{}/api/v1/hardware/{}", Config::get_web_api()?, Config::get_uuid()?.unwrap()))
+            .post(format!(
+                "{}/api/v1/hardware/{}",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
             .json(hardware_info)
             .send();
         Ok(())
@@ -46,7 +54,11 @@ impl Server {
 
     pub fn software(software_lib: &SoftwareLibrary) -> Result<()> {
         let _request = reqwest::blocking::Client::new()
-            .post(format!("{}/api/v1/software/{}", Config::get_web_api()?, Config::get_uuid()?.unwrap()))
+            .post(format!(
+                "{}/api/v1/software/{}",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
             .json(software_lib)
             .send();
         Ok(())
@@ -54,7 +66,11 @@ impl Server {
 
     pub fn profiles(profiles: &UserProfiles) -> Result<()> {
         let _request = reqwest::blocking::Client::new()
-            .post(format!("{}/api/v1/profiles/{}", Config::get_web_api()?, Config::get_uuid()?.unwrap()))
+            .post(format!(
+                "{}/api/v1/profiles/{}",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
             .json(profiles)
             .send();
         Ok(())

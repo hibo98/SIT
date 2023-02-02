@@ -1,9 +1,8 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-
 use serde::Deserialize;
-use sit_lib::hardware::{BIOS, ComputerModel, DiskDrive, Disks, GraphicsCard, HardwareInfo, MemoryStick, Network, NetworkAdapter, PhysicalMemory, Processor};
+use sit_lib::hardware::*;
 use wmi::{WMIConnection, WMIError};
 
 pub struct Hardware;
@@ -82,7 +81,9 @@ impl Hardware {
                 model: wmi_cs.Model.clone(),
                 serial_number: wmi_se.SerialNumber.clone(),
             })
-        } else { None };
+        } else {
+            None
+        };
 
         let mut sticks = Vec::new();
         let wmi_pm: Vec<Win32_PhysicalMemory> = wmi_con.query()?;
@@ -92,9 +93,7 @@ impl Hardware {
                 capacity: pm.Capacity,
             })
         }
-        let memory = PhysicalMemory {
-            sticks,
-        };
+        let memory = PhysicalMemory { sticks };
 
         let wmi_cpu: Vec<Win32_Processor> = wmi_con.query()?;
         let processor = wmi_cpu.last().map(|wmi_cpu| Processor {
@@ -118,9 +117,7 @@ impl Hardware {
                 media_type: dd.MediaType.clone(),
             })
         }
-        let disks = Disks {
-            drives,
-        };
+        let disks = Disks { drives };
 
         let mut adapter = Vec::new();
         let wmi_na: Vec<Win32_NetworkAdapter> = wmi_con.query()?;
@@ -135,9 +132,7 @@ impl Hardware {
                 })
             }
         }
-        let network = Network {
-            adapter,
-        };
+        let network = Network { adapter };
 
         let wmi_vc: Vec<Win32_VideoController> = wmi_con.query()?;
         let graphics = wmi_vc.last().map(|wmi_vc| GraphicsCard {
@@ -170,7 +165,10 @@ impl Hardware {
         Err(WMIError::ResultEmpty)
     }
 
-    fn get_net_config<'a>(wmi_nac: &'a Vec<Win32_NetworkAdapterConfiguration>, name: &str) -> Option<&'a Win32_NetworkAdapterConfiguration> {
+    fn get_net_config<'a>(
+        wmi_nac: &'a Vec<Win32_NetworkAdapterConfiguration>,
+        name: &str,
+    ) -> Option<&'a Win32_NetworkAdapterConfiguration> {
         for nac in wmi_nac {
             if nac.Description == name {
                 return Some(nac.to_owned());

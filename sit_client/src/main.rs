@@ -1,20 +1,23 @@
 #[macro_use]
 extern crate windows_service;
 
-use std::{thread, env};
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
-use std::sync::{mpsc};
+use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
+use std::{env, thread};
 
 use anyhow::Result;
-use clap::{arg, value_parser, Command, ArgAction};
+use clap::{arg, value_parser, ArgAction, Command};
 use job_scheduler_ng::{Job, JobScheduler};
-use windows_service::{service_control_handler, service_dispatcher};
-use windows_service::service::{ServiceAccess, ServiceControl, ServiceControlAccept, ServiceErrorControl, ServiceExitCode, ServiceInfo, ServiceStartType, ServiceState, ServiceStatus, ServiceType};
-use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
+use windows_service::service::{
+    ServiceAccess, ServiceControl, ServiceControlAccept, ServiceErrorControl, ServiceExitCode,
+    ServiceInfo, ServiceStartType, ServiceState, ServiceStatus, ServiceType,
+};
 use windows_service::service_control_handler::ServiceControlHandlerResult;
+use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
+use windows_service::{service_control_handler, service_dispatcher};
 use wmi::{COMLibrary, WMIConnection};
 
 use crate::config::Config;
@@ -23,18 +26,19 @@ use crate::server::Server;
 use crate::software::Software;
 use crate::win_os_info::OsInfo;
 
-mod win_os_info;
-mod hardware;
-mod software;
 mod config;
+mod hardware;
 mod server;
+mod software;
+mod win_os_info;
 
 const SERVICE_NAME: &str = "SitClientService";
 
 define_windows_service!(sit_service_main, service_main);
 
 fn install_service(service_path: &PathBuf) -> windows_service::Result<()> {
-    let manager = ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CREATE_SERVICE)?;
+    let manager =
+        ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CREATE_SERVICE)?;
 
     let service_info = ServiceInfo {
         name: OsString::from(SERVICE_NAME),
@@ -92,9 +96,7 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
     let event_handler = move |control_event| -> ServiceControlHandlerResult {
         match control_event {
-            ServiceControl::Interrogate => {
-                ServiceControlHandlerResult::NoError
-            }
+            ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
             ServiceControl::Stop => {
                 shutdown_tx.send(()).unwrap();
                 ServiceControlHandlerResult::NoError
@@ -135,7 +137,7 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     let mut scheduler = JobScheduler::new();
     COMLibrary::new()?;
-    scheduler.add(Job::new("0 * * * * * *".parse().unwrap(),  || {
+    scheduler.add(Job::new("0 * * * * * *".parse().unwrap(), || {
         let com_con = COMLibrary::without_security().unwrap();
         let wmi_con = WMIConnection::new(com_con).unwrap();
         let os_info = OsInfo::get_os_info(&wmi_con);
@@ -186,33 +188,22 @@ fn cli() -> Command {
     Command::new("client")
         .subcommand_required(true)
         .subcommand(
-            Command::new("start")
-                .about("Start client routine")
-                .arg(
-                    arg!(-s --service "Starts client routine as windows service")
-                        .action(ArgAction::SetTrue)
-                ),
+            Command::new("start").about("Start client routine").arg(
+                arg!(-s --service "Starts client routine as windows service")
+                    .action(ArgAction::SetTrue),
+            ),
         )
         .subcommand(
             Command::new("install-service")
                 .about("Installs Windows Service")
                 .arg(
                     arg!(-p --path <PATH> "Path to the executable")
-                        .value_parser(value_parser!(PathBuf))
-                )
+                        .value_parser(value_parser!(PathBuf)),
+                ),
         )
-        .subcommand(
-            Command::new("uninstall-service")
-                .about("Uninstalls Windows Service")
-        )
-        .subcommand(
-            Command::new("start-service")
-                .about("Start Windows Service")
-        )
-        .subcommand(
-            Command::new("stop-service")
-                .about("Stop Windows Service")
-        )
+        .subcommand(Command::new("uninstall-service").about("Uninstalls Windows Service"))
+        .subcommand(Command::new("start-service").about("Start Windows Service"))
+        .subcommand(Command::new("stop-service").about("Stop Windows Service"))
 }
 
 fn main() -> Result<()> {
@@ -227,7 +218,7 @@ fn main() -> Result<()> {
             } else {
                 internal_main(None)?;
             }
-        },
+        }
         Some(("install-service", sub_matches)) => {
             let path = sub_matches.get_one::<PathBuf>("path");
             if let Some(path) = path {
@@ -236,16 +227,16 @@ fn main() -> Result<()> {
                 let exe = &env::current_exe()?;
                 install_service(exe)?;
             }
-        },
+        }
         Some(("uninstall-service", _)) => {
             uninstall_service()?;
-        },
+        }
         Some(("start-service", _)) => {
             start_service()?;
-        },
+        }
         Some(("stop-service", _)) => {
             stop_service()?;
-        },
+        }
         _ => unreachable!(),
     }
     Ok(())
