@@ -1,3 +1,4 @@
+use bigdecimal::ToPrimitive;
 use rocket::State;
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
@@ -61,7 +62,11 @@ pub fn profile(database: &State<Database>, sid: String) -> Template {
                 size: up
                     .size
                     .as_ref()
-                    .map(|size| display_util::format_filesize_byte(size.digits() as f64, 0))
+                    .map(|size| {
+                        size.to_f64()
+                            .map(|size| display_util::format_filesize_byte(size, 0))
+                            .unwrap_or_default()
+                    })
                     .unwrap_or_default(),
             })
             .collect();

@@ -2,7 +2,7 @@
 extern crate windows_service;
 
 use std::ffi::{OsStr, OsString};
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
