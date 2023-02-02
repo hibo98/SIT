@@ -17,14 +17,14 @@
         <tbody>
             {{#each profiles}}
                 <tr>
-                    <td><a href="/profile/{{this.[1].sid}}">{{this.[1].username}}</a></td>
-                    <td>{{this.[0].health_status}}</td>
-                    <td>{{this.[0].roaming_path}}<br/>{{this.[0].roaming_preference}}</td>
-                    <td>{{this.[0].last_use_time}}</td>
-                    <td>{{this.[0].last_download_time}}</td>
-                    <td>{{this.[0].last_upload_time}}</td>
-                    <td>{{this.[0].status}}</td>
-                    <td>{{#if this.[0].size}} {{this.[0].size}} Byte{{/if}}</td>
+                    <td><a href="/profile/{{this.user_sid}}">{{this.user_name}}</a></td>
+                    <td>{{this.health_status}}</td>
+                    <td>{{this.roaming_path}}<br/>{{this.roaming_preference}}</td>
+                    <td>{{this.last_use_time}}</td>
+                    <td>{{this.last_download_time}}</td>
+                    <td>{{this.last_upload_time}}</td>
+                    <td>{{this.status}}</td>
+                    <td>{{this.size}}</td>
                 </tr>
             {{/each}}
         </tbody>

@@ -11,6 +11,7 @@ use crate::database::Database;
 mod api_v1;
 mod clients;
 mod database;
+mod display_util;
 mod profile;
 mod software;
 
