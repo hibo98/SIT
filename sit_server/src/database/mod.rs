@@ -36,7 +36,7 @@ impl Database {
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
         PgConnection::establish(&database_url)
-            .unwrap_or_else(|_| panic!("Error connection to {}", database_url))
+            .unwrap_or_else(|_| panic!("Error connection to {database_url}"))
             .run_pending_migrations(MIGRATIONS)
             .expect("Migrations failed");
 
@@ -260,7 +260,7 @@ impl Database {
                             last_download_time: p.last_download_time.map(|t| t.naive_utc()),
                             last_upload_time: p.last_upload_time.map(|t| t.naive_utc()),
                             status: &(p.status as i64),
-                            size: p.size.map(|s| BigDecimal::from(s)),
+                            size: p.size.map(BigDecimal::from),
                         })
                         .on_conflict((userprofile::client_id, userprofile::user_id))
                         .do_update()
@@ -275,7 +275,7 @@ impl Database {
                             userprofile::last_upload_time
                                 .eq(p.last_upload_time.map(|t| t.naive_utc())),
                             userprofile::status.eq(&(p.status as i64)),
-                            userprofile::size.eq(p.size.map(|s| BigDecimal::from(s))),
+                            userprofile::size.eq(p.size.map(BigDecimal::from)),
                         ))
                         .execute(c)?;
                 } else {

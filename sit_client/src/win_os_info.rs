@@ -94,11 +94,10 @@ impl OsInfo {
             .build();
         let output = shell.run(
             format!(
-                r#"$SID ='{}'
+                r#"$SID ='{sid}'
 $objSID = New-Object System.Security.Principal.SecurityIdentifier($SID)
 $objUser = $objSID.Translate([System.Security.Principal.NTAccount])
-Write-Host $objUser.Value"#,
-                sid
+Write-Host $objUser.Value"#
             )
             .as_str(),
         )?;
@@ -115,10 +114,9 @@ Write-Host $objUser.Value"#,
             .build();
         let output = shell.run(
             format!(
-                r#"$Path = '{}'
+                r#"$Path = '{path}'
 $obj = Get-ChildItem -Path $Path -Recurse -Force | Measure-Object -Sum Length
-Write-Host $obj.Sum"#,
-                path
+Write-Host $obj.Sum"#
             )
             .as_str(),
         )?;

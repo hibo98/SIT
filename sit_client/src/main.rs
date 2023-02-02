@@ -2,7 +2,7 @@
 extern crate windows_service;
 
 use std::ffi::{OsStr, OsString};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
@@ -36,7 +36,7 @@ const SERVICE_NAME: &str = "SitClientService";
 
 define_windows_service!(sit_service_main, service_main);
 
-fn install_service(service_path: &PathBuf) -> windows_service::Result<()> {
+fn install_service(service_path: &Path) -> windows_service::Result<()> {
     let manager =
         ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CREATE_SERVICE)?;
 
@@ -46,7 +46,7 @@ fn install_service(service_path: &PathBuf) -> windows_service::Result<()> {
         service_type: ServiceType::OWN_PROCESS,
         start_type: ServiceStartType::AutoStart,
         error_control: ServiceErrorControl::Normal,
-        executable_path: service_path.clone(),
+        executable_path: service_path.to_path_buf(),
         launch_arguments: vec!["start".into(), "-s".into()],
         dependencies: vec![],
         account_name: None,

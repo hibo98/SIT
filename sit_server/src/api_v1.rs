@@ -16,7 +16,7 @@ pub async fn register(
     database: &State<Database>,
     input: Json<Register>,
 ) -> status::Custom<Json<Register>> {
-    let uuid = input.uuid.unwrap_or_else(|| Uuid::new_v4());
+    let uuid = input.uuid.unwrap_or_else(Uuid::new_v4);
     let computer_name = input.name.clone();
     match database.create_client(&uuid) {
         Ok(client) => match database.create_os_info(&client, &computer_name) {
