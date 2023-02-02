@@ -1,9 +1,9 @@
 use uuid::Uuid;
 
+use super::schema::*;
 use bigdecimal::BigDecimal;
 use chrono::naive::NaiveDateTime;
 use rocket::serde::Serialize;
-use super::schema::*;
 
 #[derive(Debug, Queryable, Serialize, Clone)]
 pub struct Client {

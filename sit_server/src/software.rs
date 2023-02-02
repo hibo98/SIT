@@ -23,9 +23,12 @@ pub fn software(database: &State<Database>, id: i32) -> Template {
 pub fn software_computer(database: &State<Database>, id: i32) -> Template {
     let result = database.get_software_computer_list(id);
     if let Ok((software_info, software_computer_list)) = result {
-        Template::render("software_computer_list", context! { software_info, software_computer_list })
+        Template::render(
+            "software_computer_list",
+            context! { software_info, software_computer_list },
+        )
     } else {
-        Template::render("software_computer_list", context! { })
+        Template::render("software_computer_list", context! {})
     }
 }
 
@@ -33,8 +36,11 @@ pub fn software_computer(database: &State<Database>, id: i32) -> Template {
 pub fn version(database: &State<Database>, id: i32) -> Template {
     let result = database.get_software_version_list(id);
     if let Ok((software_info, software_version, software_versions_list)) = result {
-        Template::render("software_version", context! { software_info, software_version, software_versions_list })
+        Template::render(
+            "software_version",
+            context! { software_info, software_version, software_versions_list },
+        )
     } else {
-        Template::render("software_version", context! { })
+        Template::render("software_version", context! {})
     }
 }
