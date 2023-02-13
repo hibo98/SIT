@@ -1,9 +1,9 @@
 {{> main-top title="Clients"}}
 <div class="client-table">
-    <h1>{{client.[1].computer_name}}.{{client.[1].domain}}</h1>
-    <p>UUID: {{client.[0].uuid}}</p>
-    <p>OS: {{client.[1].os}}</p>
-    <p>OS-Version: {{client.[1].os_version}}</p>
-    <p><a href="/clients/{{client.[0].uuid}}/profiles">Profile</a>, <a href="/clients/{{client.[0].uuid}}/software">Software</a></p>
+    <h1>{{os_info.computer_name}}.{{os_info.domain}}</h1>
+    <p>UUID: {{client.uuid}}</p>
+    <p>OS: {{os_info.os}}</p>
+    <p>OS-Version: {{os_info.os_version}}</p>
+    <p><a href="/clients/{{client.uuid}}/profiles">Profile</a>, <a href="/clients/{{client.uuid}}/software">Software</a></p>
 </div>
 {{> main-bottom}}

@@ -12,8 +12,12 @@ pub fn index(database: &State<Database>) -> Template {
 #[get("/<id>")]
 pub fn software(database: &State<Database>, id: i32) -> Template {
     let software_info = database.get_software_info(id);
-    if let Ok(software_info) = software_info {
-        Template::render("software_info", context! { software: software_info })
+    let software_versions = database.get_software_versions(id);
+    if let (Ok(software_info), Ok(software_versions)) = (software_info, software_versions) {
+        Template::render(
+            "software_info",
+            context! { software_info, software_versions },
+        )
     } else {
         Template::render("software_info", context! {})
     }
@@ -21,11 +25,12 @@ pub fn software(database: &State<Database>, id: i32) -> Template {
 
 #[get("/<id>/computer")]
 pub fn software_computer(database: &State<Database>, id: i32) -> Template {
-    let result = database.get_software_computer_list(id);
-    if let Ok((software_info, software_computer_list)) = result {
+    let software_info = database.get_software_info(id);
+    let computer_list = database.get_software_computer_list(id);
+    if let (Ok(software_info), Ok(computer_list)) = (software_info, computer_list) {
         Template::render(
             "software_computer_list",
-            context! { software_info, software_computer_list },
+            context! { software_info, computer_list },
         )
     } else {
         Template::render("software_computer_list", context! {})
@@ -34,13 +39,18 @@ pub fn software_computer(database: &State<Database>, id: i32) -> Template {
 
 #[get("/version/<id>", rank = 0)]
 pub fn version(database: &State<Database>, id: i32) -> Template {
-    let result = database.get_software_version_list(id);
-    if let Ok((software_info, software_version, software_versions_list)) = result {
-        Template::render(
-            "software_version",
-            context! { software_info, software_version, software_versions_list },
-        )
-    } else {
-        Template::render("software_version", context! {})
+    let software_version = database.get_software_version(id);
+    if let Ok(software_version) = software_version {
+        let software_info = database.get_software_info(software_version.software_id);
+        let software_versions_list = database.get_software_version_clients(id);
+        if let (Ok(software_versions_list), Ok(software_info)) =
+            (software_versions_list, software_info)
+        {
+            return Template::render(
+                "software_version",
+                context! { software_info, software_version, software_versions_list },
+            );
+        }
     }
+    Template::render("software_version", context! {})
 }

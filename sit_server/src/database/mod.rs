@@ -2,7 +2,7 @@ extern crate dotenv;
 
 use std::env;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use bigdecimal::BigDecimal;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
@@ -60,10 +60,9 @@ impl Database {
             .get_result(&mut conn)?)
     }
 
-    pub fn get_client_id(&self, uuid: &Uuid) -> Result<i32> {
+    pub fn get_client(&self, uuid: &Uuid) -> Result<Client> {
         let mut conn = self.pool.get()?;
         Ok(client::table
-            .select(client::id)
             .filter(client::uuid.eq(uuid))
             .get_result(&mut conn)?)
     }
@@ -372,7 +371,7 @@ impl Database {
             .get_result(&mut conn)?)
     }
 
-    pub fn get_clients_info(&self) -> Result<Vec<(Client, Option<OsInfo>)>> {
+    pub fn get_clients_with_os_info(&self) -> Result<Vec<(Client, Option<OsInfo>)>> {
         let mut conn = self.pool.get()?;
         Ok(client::table
             .left_join(os_info::table)
@@ -387,15 +386,16 @@ impl Database {
             .load::<SoftwareInfo>(&mut conn)?)
     }
 
-    pub fn get_software_info(
-        &self,
-        id: i32,
-    ) -> Result<(SoftwareInfo, Vec<SoftwareVersionWithCount>)> {
+    pub fn get_software_info(&self, software_id: i32) -> Result<SoftwareInfo> {
         let mut conn = self.pool.get()?;
-        let software_info = software_info::table
-            .filter(software_info::id.eq(id))
-            .get_result::<SoftwareInfo>(&mut conn)?;
-        let software_versions = software_version::table
+        Ok(software_info::table
+            .filter(software_info::id.eq(software_id))
+            .get_result::<SoftwareInfo>(&mut conn)?)
+    }
+
+    pub fn get_software_versions(&self, software_id: i32) -> Result<Vec<SoftwareVersionWithCount>> {
+        let mut conn = self.pool.get()?;
+        Ok(software_version::table
             .select((
                 software_version::id,
                 software_version::software_id,
@@ -408,72 +408,56 @@ impl Database {
                     0,
                 ),
             ))
-            .filter(software_version::software_id.eq(id))
-            .load::<SoftwareVersionWithCount>(&mut conn)?;
-        Ok((software_info, software_versions))
+            .filter(software_version::software_id.eq(software_id))
+            .load::<SoftwareVersionWithCount>(&mut conn)?)
     }
 
     pub fn get_software_computer_list(
         &self,
-        id: i32,
-    ) -> Result<(
-        SoftwareInfo,
-        Vec<(SoftwareList, SoftwareVersion, (Client, OsInfo))>,
-    )> {
+        software_id: i32,
+    ) -> Result<Vec<(SoftwareList, SoftwareVersion, (Client, OsInfo))>> {
         let mut conn = self.pool.get()?;
-        let software_info = software_info::table
-            .filter(software_info::id.eq(id))
-            .get_result::<SoftwareInfo>(&mut conn)?;
-        let software_computer_list: Vec<(SoftwareList, SoftwareVersion, (Client, OsInfo))> =
-            software_list::table
-                .filter(software_version::software_id.eq(id))
-                .inner_join(software_version::table)
-                .inner_join(client::table.inner_join(os_info::table))
-                .load::<(SoftwareList, SoftwareVersion, (Client, OsInfo))>(&mut conn)?;
-        Ok((software_info, software_computer_list))
+        Ok(software_list::table
+            .filter(software_version::software_id.eq(software_id))
+            .inner_join(software_version::table)
+            .inner_join(client::table.inner_join(os_info::table))
+            .load::<(SoftwareList, SoftwareVersion, (Client, OsInfo))>(&mut conn)?)
     }
 
-    pub fn get_software_version_list(
-        &self,
-        version_id: i32,
-    ) -> Result<(
-        SoftwareInfo,
-        SoftwareVersion,
-        Vec<(SoftwareList, (Client, OsInfo))>,
-    )> {
+    pub fn get_software_version(&self, version_id: i32) -> Result<SoftwareVersion> {
         let mut conn = self.pool.get()?;
-        let software_info = software_info::table
+        Ok(software_version::table
+            .filter(software_version::id.eq(version_id))
+            .get_result::<SoftwareVersion>(&mut conn)?)
+    }
+
+    pub fn get_software_version_clients(&self, version_id: i32) -> Result<Vec<(Client, OsInfo)>> {
+        let mut conn = self.pool.get()?;
+        Ok(client::table
             .filter(
-                software_info::id.nullable().eq(software_version::table
-                    .select(software_version::software_id)
-                    .filter(software_version::id.eq(version_id))
+                client::id.eq_any(
+                    software_list::table
+                        .select(software_list::client_id)
+                        .filter(software_list::software_id.eq(version_id)),
+                ),
+            )
+            .inner_join(os_info::table)
+            .load::<(Client, OsInfo)>(&mut conn)?)
+    }
+
+    pub fn get_client_os_info(&self, uuid: &Uuid) -> Result<OsInfo> {
+        let mut conn = self.pool.get()?;
+        Ok(os_info::table
+            .filter(
+                os_info::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
                     .single_value()),
             )
-            .get_result::<SoftwareInfo>(&mut conn)?;
-        let software_version = software_version::table
-            .filter(software_version::id.eq(version_id))
-            .get_result::<SoftwareVersion>(&mut conn)?;
-        let software_versions_list: Vec<(SoftwareList, (Client, OsInfo))> = software_list::table
-            .filter(software_list::software_id.eq(version_id))
-            .inner_join(client::table.inner_join(os_info::table))
-            .load::<(SoftwareList, (Client, OsInfo))>(&mut conn)?;
-        Ok((software_info, software_version, software_versions_list))
+            .get_result::<OsInfo>(&mut conn)?)
     }
 
-    pub fn get_client_info(&self, uuid: Uuid) -> Result<(Client, Option<OsInfo>)> {
-        let mut conn = self.pool.get()?;
-        let result: Vec<(Client, Option<OsInfo>)> = client::table
-            .filter(client::uuid.eq(uuid))
-            .left_join(os_info::table)
-            .load::<(Client, Option<OsInfo>)>(&mut conn)?;
-        if result.is_empty() {
-            Err(anyhow!("Empty Result"))
-        } else {
-            Ok(result.first().cloned().unwrap())
-        }
-    }
-
-    pub fn get_client_profiles(&self, uuid: Uuid) -> Result<Vec<(UserProfile, User)>> {
+    pub fn get_client_profiles(&self, uuid: &Uuid) -> Result<Vec<(UserProfile, User)>> {
         let mut conn = self.pool.get()?;
         Ok(userprofile::table
             .filter(

@@ -51,8 +51,8 @@ pub async fn os(
     uuid: Uuid,
     input: Json<WinOsInfo>,
 ) -> status::Custom<()> {
-    match database.get_client_id(&uuid) {
-        Ok(client_id) => match database.update_os_info(client_id, input.0) {
+    match database.get_client(&uuid) {
+        Ok(client) => match database.update_os_info(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
             Err(_) => status::Custom(Status::InternalServerError, ()),
         },
@@ -66,8 +66,8 @@ pub async fn hardware(
     uuid: Uuid,
     input: Json<HardwareInfo>,
 ) -> status::Custom<()> {
-    match database.get_client_id(&uuid) {
-        Ok(client_id) => match database.create_hardware_info(client_id, input.0) {
+    match database.get_client(&uuid) {
+        Ok(client) => match database.create_hardware_info(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
             Err(_) => status::Custom(Status::InternalServerError, ()),
         },
@@ -81,8 +81,8 @@ pub async fn software(
     uuid: Uuid,
     input: Json<SoftwareLibrary>,
 ) -> status::Custom<()> {
-    match database.get_client_id(&uuid) {
-        Ok(client_id) => match database.update_software_lib(client_id, input.0) {
+    match database.get_client(&uuid) {
+        Ok(client) => match database.update_software_lib(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
             Err(_) => status::Custom(Status::InternalServerError, ()),
         },
@@ -96,8 +96,8 @@ pub async fn profiles(
     uuid: Uuid,
     input: Json<UserProfiles>,
 ) -> status::Custom<()> {
-    match database.get_client_id(&uuid) {
-        Ok(client_id) => match database.update_profiles(client_id, input.0) {
+    match database.get_client(&uuid) {
+        Ok(client) => match database.update_profiles(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
             Err(_) => status::Custom(Status::InternalServerError, ()),
         },
