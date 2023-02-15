@@ -5,6 +5,7 @@ use anyhow::Result;
 use powershell_script::PsScriptBuilder;
 use serde::Deserialize;
 use sit_lib::os::{ProfileInfo, UserProfiles, WinOsInfo};
+use walkdir::WalkDir;
 use wmi::{WMIConnection, WMIDateTime, WMIError};
 
 pub struct OsInfo;
@@ -106,23 +107,10 @@ Write-Host $objUser.Value"#
     }
 
     fn get_dir_size(path: &String) -> Result<u64> {
-        let shell = PsScriptBuilder::new()
-            .no_profile(true)
-            .non_interactive(true)
-            .hidden(true)
-            .print_commands(false)
-            .build();
-        let output = shell.run(
-            format!(
-                r#"$Path = '{path}'
-$obj = Get-ChildItem -Path $Path -Recurse -Force | Measure-Object -Sum Length
-Write-Host $obj.Sum"#
-            )
-            .as_str(),
-        )?;
-        let o = output.stdout().unwrap();
-        let o = o.trim();
-        let sum = o.parse::<u64>()?;
-        Ok(sum)
+        Ok(WalkDir::new(path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .map(|f| f.metadata().map_or(0, |f| f.len()))
+            .sum())
     }
 }

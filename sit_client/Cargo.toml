@@ -2,7 +2,7 @@ cargo-features = ["per-package-target"]
 
 [package]
 name = "sit_client"
-version = "0.1.0"
+version = "1.0.2"
 edition = "2021"
 default-target = "x86_64-pc-windows-gnu"
 
@@ -22,3 +22,4 @@ windows-service = "0.5"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 powershell_script = "1"
 clap = "4"
+walkdir = "2"
