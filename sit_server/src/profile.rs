@@ -4,20 +4,20 @@ use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{database::Database, display_util};
+use crate::{database::Database, display_util, ms_magic};
 
 #[derive(Clone, Debug, Serialize)]
 struct Profile {
     pub client_uuid: Uuid,
     pub os_computer_name: String,
-    pub health_status: i16,
+    pub health_status: String,
     pub roaming_configured: bool,
     pub roaming_path: Option<String>,
     pub roaming_preference: Option<bool>,
     pub last_use_time: String,
     pub last_download_time: String,
     pub last_upload_time: String,
-    pub status: i64,
+    pub status: Vec<String>,
     pub size: String,
 }
 
@@ -45,7 +45,7 @@ pub fn profile(database: &State<Database>, sid: String) -> Template {
                         }
                     })
                     .unwrap_or("<no computer name>".to_string()),
-                health_status: up.health_status,
+                health_status: ms_magic::resolve_profile_health_status(up.health_status),
                 roaming_configured: up.roaming_configured,
                 roaming_path: up.roaming_path.clone(),
                 roaming_preference: up.roaming_preference,
@@ -58,7 +58,7 @@ pub fn profile(database: &State<Database>, sid: String) -> Template {
                     .last_upload_time
                     .map(display_util::format_date_time)
                     .unwrap_or_default(),
-                status: up.status,
+                status: ms_magic::resolve_profile_status(up.status),
                 size: up
                     .size
                     .as_ref()

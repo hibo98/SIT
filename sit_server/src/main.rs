@@ -12,6 +12,7 @@ mod api_v1;
 mod clients;
 mod database;
 mod display_util;
+mod ms_magic;
 mod profile;
 mod software;
 
