@@ -21,9 +21,27 @@ struct Profile {
     pub size: String,
 }
 
+#[derive(Clone, Debug, Serialize)]
+struct UserWithProfileCount {
+    pub id: i32,
+    pub sid: String,
+    pub username: String,
+    pub count: i64,
+}
+
 #[get("/")]
 pub fn index(database: &State<Database>) -> Template {
-    let profiles = database.get_profiles().unwrap_or(vec![]);
+    let profiles: Vec<UserWithProfileCount> = database
+        .get_profiles()
+        .unwrap_or(vec![])
+        .iter()
+        .map(|p| UserWithProfileCount {
+            id: p.id,
+            sid: p.sid.clone(),
+            username: display_util::unpack_or(p.username.as_ref(), "<unknown user>".to_owned()),
+            count: p.count,
+        })
+        .collect();
     Template::render("profiles", context! { profiles })
 }
 

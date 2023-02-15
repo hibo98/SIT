@@ -1,4 +1,3 @@
-
 pub fn resolve_profile_health_status(health_status: i16) -> String {
     match health_status {
         0 => "Gesund".to_owned(),

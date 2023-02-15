@@ -46,7 +46,10 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
             .iter()
             .map(|(up, u)| Profile {
                 user_sid: u.sid.clone(),
-                user_name: u.username.clone().unwrap_or("<no username>".to_string()),
+                user_name: display_util::unpack_or(
+                    u.username.as_ref(),
+                    "<unknown user>".to_owned(),
+                ),
                 health_status: ms_magic::resolve_profile_health_status(up.health_status),
                 roaming_configured: up.roaming_configured,
                 roaming_path: up.roaming_path.clone(),
@@ -60,7 +63,7 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
                     .last_upload_time
                     .map(display_util::format_date_time)
                     .unwrap_or_default(),
-                    status: ms_magic::resolve_profile_status(up.status),
+                status: ms_magic::resolve_profile_status(up.status),
                 size: up
                     .size
                     .as_ref()
