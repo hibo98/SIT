@@ -6,6 +6,8 @@ use powershell_script::PsScriptBuilder;
 use serde::Deserialize;
 use sit_lib::os::{ProfileInfo, UserProfiles, WinOsInfo};
 use walkdir::WalkDir;
+use winreg::enums::{HKEY_LOCAL_MACHINE};
+use winreg::RegKey;
 use wmi::{WMIConnection, WMIDateTime, WMIError};
 
 pub struct OsInfo;
@@ -48,9 +50,15 @@ impl OsInfo {
         let win32_os: Vec<Win32_OperatingSystem> = wmi_con.query()?;
         if let Some(win32_os) = win32_os.last() {
             if let Some(win32_cs) = win32_cs.last() {
+                let ubr = Self::get_ubr();
+                let version = if let Ok(ubr) = ubr {
+                    format!("{}.{}", win32_os.Version, ubr)
+                } else {
+                    win32_os.Version.clone()
+                };
                 return Ok(WinOsInfo {
                     operating_system: win32_os.Caption.clone(),
-                    os_version: win32_os.Version.clone(),
+                    os_version: version,
                     computer_name: win32_cs.DNSHostName.clone(),
                     domain: win32_cs.Domain.clone(),
                 });
@@ -112,5 +120,10 @@ Write-Host $objUser.Value"#
             .filter_map(|e| e.ok())
             .map(|f| f.metadata().map_or(0, |f| f.len()))
             .sum())
+    }
+
+    fn get_ubr() -> Result<u32> {
+        let sub_key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")?;
+        Ok(sub_key.get_value("UBR")?)
     }
 }
