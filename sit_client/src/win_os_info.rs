@@ -1,12 +1,20 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-use anyhow::Result;
-use powershell_script::PsScriptBuilder;
+use anyhow::{bail, Result};
 use serde::Deserialize;
 use sit_lib::os::{ProfileInfo, UserProfiles, WinOsInfo};
+use std::ffi::{c_void, CString};
+use std::ptr;
 use walkdir::WalkDir;
-use winreg::enums::{HKEY_LOCAL_MACHINE};
+use widestring::U16CString;
+use winapi::shared::sddl::ConvertStringSidToSidA;
+use winapi::shared::winerror::{ERROR_INVALID_PARAMETER, ERROR_INVALID_SID, ERROR_NONE_MAPPED};
+use winapi::um::errhandlingapi::GetLastError;
+use winapi::um::winbase::LocalFree;
+use winapi::um::winbase::LookupAccountSidW;
+use winapi::um::winnt::SID_NAME_USE;
+use winreg::enums::HKEY_LOCAL_MACHINE;
 use winreg::RegKey;
 use wmi::{WMIConnection, WMIDateTime, WMIError};
 
@@ -44,6 +52,24 @@ struct Win32_UserProfile {
     Loaded: bool,
 }
 
+#[derive(Debug)]
+struct AccountInfo {
+    username: String,
+    domain_name: String,
+}
+
+struct WinPointer {
+    inner: *mut c_void,
+}
+
+impl Drop for WinPointer {
+    fn drop(&mut self) {
+        unsafe {
+            LocalFree(self.inner);
+        }
+    }
+}
+
 impl OsInfo {
     pub fn get_os_info(wmi_con: &WMIConnection) -> Result<WinOsInfo, WMIError> {
         let win32_cs: Vec<Win32_ComputerSystem> = wmi_con.query()?;
@@ -74,7 +100,9 @@ impl OsInfo {
             .filter(|up| !up.Special)
             .filter(|up| up.SID.starts_with("S-1-5-21-"))
             .map(|up| ProfileInfo {
-                username: OsInfo::lookup_sid(&up.SID).ok(),
+                username: OsInfo::lookup_account_by_sid(&up.SID)
+                    .ok()
+                    .map(|account| format!("{}\\{}", account.domain_name, account.username)),
                 sid: up.SID.clone(),
                 health_status: up.HealthStatus,
                 roaming_configured: up.RoamingConfigured,
@@ -94,24 +122,59 @@ impl OsInfo {
         Ok(UserProfiles { profiles: vec })
     }
 
-    fn lookup_sid(sid: &String) -> Result<String> {
-        let shell = PsScriptBuilder::new()
-            .no_profile(true)
-            .non_interactive(true)
-            .hidden(true)
-            .print_commands(false)
-            .build();
-        let output = shell.run(
-            format!(
-                r#"$SID ='{sid}'
-$objSID = New-Object System.Security.Principal.SecurityIdentifier($SID)
-$objUser = $objSID.Translate([System.Security.Principal.NTAccount])
-Write-Host $objUser.Value"#
-            )
-            .as_str(),
-        )?;
-        let username = output.stdout().unwrap().trim().to_string();
-        Ok(username)
+    #[allow(unused_assignments)]
+    fn lookup_account_by_sid(sid_str: &str) -> Result<AccountInfo> {
+        let sid_c_string = CString::new(sid_str)?;
+        let mut sid_ptr = WinPointer {
+            inner: ptr::null_mut(),
+        };
+
+        unsafe {
+            if ConvertStringSidToSidA(sid_c_string.as_ptr(), &mut sid_ptr.inner) == 0 {
+                let err = GetLastError();
+                if err == ERROR_INVALID_PARAMETER {
+                    bail!("Conversion of String to PSID failed (ERROR_INVALID_PARAMETER) SID: {sid_str}");
+                } else if err == ERROR_INVALID_SID {
+                    bail!("Conversion of String to PSID failed (ERROR_INVALID_SID) SID: {sid_str}");
+                } else {
+                    bail!("Conversion of String to PSID failed ({err}) SID: {sid_str}");
+                }
+            }
+        }
+
+        let mut name: [u16; 256] = [0; 256];
+        let mut name_size = name.len() as u32;
+        let mut domain_name: [u16; 256] = [0; 256];
+        let mut domain_name_size = domain_name.len() as u32;
+        let mut sid_name_use: SID_NAME_USE = 0;
+
+        unsafe {
+            if LookupAccountSidW(
+                ptr::null(),
+                sid_ptr.inner,
+                name.as_mut_ptr(),
+                &mut name_size,
+                domain_name.as_mut_ptr(),
+                &mut domain_name_size,
+                &mut sid_name_use,
+            ) == 0
+            {
+                let err = GetLastError();
+                if err == ERROR_NONE_MAPPED {
+                    bail!("Lookup of Account failed (ERROR_NONE_MAPPED)");
+                } else {
+                    bail!("Lookup of Account failed ({err})");
+                }
+            }
+
+            let username = U16CString::from_ptr_str(name.as_ptr()).to_string_lossy();
+            let domain_name = U16CString::from_ptr_str(domain_name.as_ptr()).to_string_lossy();
+
+            Ok(AccountInfo {
+                username,
+                domain_name,
+            })
+        }
     }
 
     fn get_dir_size(path: &String) -> Result<u64> {
@@ -123,7 +186,8 @@ Write-Host $objUser.Value"#
     }
 
     fn get_ubr() -> Result<u32> {
-        let sub_key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")?;
+        let sub_key = RegKey::predef(HKEY_LOCAL_MACHINE)
+            .open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")?;
         Ok(sub_key.get_value("UBR")?)
     }
 }
