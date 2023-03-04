@@ -22,5 +22,4 @@ windows-service = "0.5"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 clap = "4"
 walkdir = "2"
-winapi = { version = "0.3", features = ["errhandlingapi","sddl","winbase","winerror","winnt"] }
-widestring = "1"
+windows = { version = "0.44", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Authorization", "Win32_System_Memory"] }

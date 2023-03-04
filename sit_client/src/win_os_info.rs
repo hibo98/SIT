@@ -4,16 +4,13 @@
 use anyhow::{bail, Result};
 use serde::Deserialize;
 use sit_lib::os::{ProfileInfo, UserProfiles, WinOsInfo};
-use std::ffi::{c_void, CString};
-use std::ptr;
+use std::ffi::CString;
 use walkdir::WalkDir;
-use widestring::U16CString;
-use winapi::shared::sddl::ConvertStringSidToSidA;
-use winapi::shared::winerror::{ERROR_INVALID_PARAMETER, ERROR_INVALID_SID, ERROR_NONE_MAPPED};
-use winapi::um::errhandlingapi::GetLastError;
-use winapi::um::winbase::LocalFree;
-use winapi::um::winbase::LookupAccountSidW;
-use winapi::um::winnt::SID_NAME_USE;
+use windows::core::{PCSTR, PCWSTR, PWSTR};
+use windows::Win32::Foundation::{GetLastError, PSID};
+use windows::Win32::Security::Authorization::ConvertStringSidToSidA;
+use windows::Win32::Security::{LookupAccountSidW, SID_NAME_USE};
+use windows::Win32::System::Memory::LocalFree;
 use winreg::enums::HKEY_LOCAL_MACHINE;
 use winreg::RegKey;
 use wmi::{WMIConnection, WMIDateTime, WMIError};
@@ -59,13 +56,13 @@ struct AccountInfo {
 }
 
 struct WinPointer {
-    inner: *mut c_void,
+    inner: PSID,
 }
 
 impl Drop for WinPointer {
     fn drop(&mut self) {
         unsafe {
-            LocalFree(self.inner);
+            LocalFree(self.inner.0 as isize);
         }
     }
 }
@@ -122,57 +119,51 @@ impl OsInfo {
         Ok(UserProfiles { profiles: vec })
     }
 
-    #[allow(unused_assignments)]
     fn lookup_account_by_sid(sid_str: &str) -> Result<AccountInfo> {
         let sid_c_string = CString::new(sid_str)?;
         let mut sid_ptr = WinPointer {
-            inner: ptr::null_mut(),
+            inner: PSID::default(),
         };
 
         unsafe {
-            if ConvertStringSidToSidA(sid_c_string.as_ptr(), &mut sid_ptr.inner) == 0 {
-                let err = GetLastError();
-                if err == ERROR_INVALID_PARAMETER {
-                    bail!("Conversion of String to PSID failed (ERROR_INVALID_PARAMETER) SID: {sid_str}");
-                } else if err == ERROR_INVALID_SID {
-                    bail!("Conversion of String to PSID failed (ERROR_INVALID_SID) SID: {sid_str}");
-                } else {
-                    bail!("Conversion of String to PSID failed ({err}) SID: {sid_str}");
-                }
+            if !ConvertStringSidToSidA(
+                PCSTR::from_raw(sid_c_string.as_ptr() as *const u8),
+                &mut sid_ptr.inner,
+            )
+            .as_bool()
+            {
+                let err = GetLastError().to_hresult().message();
+                bail!("Conversion of String to PSID failed ({err}) SID: {sid_str}");
             }
         }
 
         let mut name: [u16; 256] = [0; 256];
         let mut name_size = name.len() as u32;
+        let name_pwstr = PWSTR::from_raw(name.as_mut_ptr());
         let mut domain_name: [u16; 256] = [0; 256];
         let mut domain_name_size = domain_name.len() as u32;
-        let mut sid_name_use: SID_NAME_USE = 0;
+        let domain_name_pwstr = PWSTR::from_raw(domain_name.as_mut_ptr());
+        let mut sid_name_use = SID_NAME_USE::default();
 
         unsafe {
-            if LookupAccountSidW(
-                ptr::null(),
+            if !LookupAccountSidW(
+                PCWSTR::null(),
                 sid_ptr.inner,
-                name.as_mut_ptr(),
+                name_pwstr,
                 &mut name_size,
-                domain_name.as_mut_ptr(),
+                domain_name_pwstr,
                 &mut domain_name_size,
                 &mut sid_name_use,
-            ) == 0
+            )
+            .as_bool()
             {
-                let err = GetLastError();
-                if err == ERROR_NONE_MAPPED {
-                    bail!("Lookup of Account failed (ERROR_NONE_MAPPED)");
-                } else {
-                    bail!("Lookup of Account failed ({err})");
-                }
+                let err = GetLastError().to_hresult().message();
+                bail!("Lookup of Account failed ({err})");
             }
 
-            let username = U16CString::from_ptr_str(name.as_ptr()).to_string_lossy();
-            let domain_name = U16CString::from_ptr_str(domain_name.as_ptr()).to_string_lossy();
-
             Ok(AccountInfo {
-                username,
-                domain_name,
+                username: name_pwstr.to_string()?,
+                domain_name: domain_name_pwstr.to_string()?,
             })
         }
     }
