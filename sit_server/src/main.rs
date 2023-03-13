@@ -12,6 +12,7 @@ mod api_v1;
 mod clients;
 mod database;
 mod display_util;
+mod hardware;
 mod ms_magic;
 mod profile;
 mod software;
@@ -27,13 +28,14 @@ async fn main() -> Result<(), rocket::Error> {
         .manage(Database::establish_connection())
         .attach(Template::fairing())
         .mount("/", routes![index])
+        .mount("/hardware/", routes![hardware::index])
         .mount(
             "/software/",
             routes![
                 software::index,
                 software::software,
                 software::software_computer,
-                software::version
+                software::version,
             ],
         )
         .mount(
@@ -42,7 +44,8 @@ async fn main() -> Result<(), rocket::Error> {
                 clients::index,
                 clients::client,
                 clients::profiles,
-                clients::software
+                clients::software,
+                clients::hardware,
             ],
         )
         .mount("/profile/", routes![profile::index, profile::profile])
@@ -53,7 +56,7 @@ async fn main() -> Result<(), rocket::Error> {
                 api_v1::os,
                 api_v1::hardware,
                 api_v1::software,
-                api_v1::profiles
+                api_v1::profiles,
             ],
         )
         .mount("/static", FileServer::from("static"))

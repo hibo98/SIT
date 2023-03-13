@@ -1,0 +1,162 @@
+{{> main-top title="Client-Hardware"}}
+<div class="hardware-table">
+    <h1>Prozessoren</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Hersteller</th>
+            <th>Kerne</th>
+            <th>Logische Kerne</th>
+            <th>Takt</th>
+            <th>Adressbreite</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each processors}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.manufacturer}}</td>
+                <td>{{this.cores}}</td>
+                <td>{{this.logical_cores}}</td>
+                <td>{{this.clock_speed}} MHz</td>
+                <td>{{this.address_width}}-bit</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+    <h1>Arbeitsspeicher</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Gesamtkapazität</th>
+            <th>Anzahl Module</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each memorys}}
+            <tr>
+                <td>{{this.capacity}}</td>
+                <td>{{this.stick_count}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+    <h1>Grafikkarten</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each graphics_cards}}
+            <tr>
+                <td>{{this.name}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+    <h1>Festplatten</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Model</th>
+            <th>Seriennummer</th>
+            <th>Größe</th>
+            <th>Geräte-ID</th>
+            <th>Status</th>
+            <th>Media Type</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each disks}}
+            <tr>
+                <td>{{this.model}}</td>
+                <td>{{this.serial_number}}</td>
+                <td>{{this.size}}</td>
+                <td>{{this.device_id}}</td>
+                <td>{{this.status}}</td>
+                <td>{{this.media_type}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+    <h1>Computer Modelle</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Hersteller</th>
+            <th>Modellfamilie</th>
+            <th>Seriennummer</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each computer_models}}
+            <tr>
+                <td>{{this.manufacturer}}</td>
+                <td>{{this.model_family}}</td>
+                <td>{{this.serial_number}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+    <h1>Bios</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Hersteller</th>
+            <th>Version</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each bios_list}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.manufacturer}}</td>
+                <td>{{this.version}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+    <h1>Netzwerkadapter</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>MAC-Adresse</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each network_adapters}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.mac_address}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> main-bottom}}

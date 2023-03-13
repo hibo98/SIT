@@ -159,6 +159,14 @@ pub struct NewUserProfileWithoutSize<'a> {
     pub status: &'a i64,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct ComputerModel {
+    pub client_id: i32,
+    pub manufacturer:String,
+    pub model_family: String,
+    pub serial_number: String,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = computer_model)]
 pub struct NewComputerModel<'a> {
@@ -168,12 +176,30 @@ pub struct NewComputerModel<'a> {
     pub serial_number: &'a String,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct Memory {
+    pub client_id: i32,
+    pub capacity: Option<BigDecimal>,
+    pub stick_count: i64,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = memory_stick)]
 pub struct NewMemoryStick<'a> {
     pub client_id: &'a i32,
     pub capacity: &'a BigDecimal,
     pub bank_label: &'a String,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct Processor {
+    pub client_id: i32,
+    pub name: String,
+    pub manufacturer: String,
+    pub cores: i64,
+    pub logical_cores: i64,
+    pub clock_speed: i64,
+    pub address_width: i32,
 }
 
 #[derive(Insertable)]
@@ -186,6 +212,18 @@ pub struct NewProcessor<'a> {
     pub logical_cores: &'a i64,
     pub clock_speed: &'a i64,
     pub address_width: &'a i32,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct Disk {
+    pub id: i32,
+    pub client_id: i32,
+    pub model: String,
+    pub serial_number: String,
+    pub size: Option<BigDecimal>,
+    pub device_id: String,
+    pub status: String,
+    pub media_type: String,
 }
 
 #[derive(Insertable)]
@@ -223,11 +261,25 @@ pub struct NewNetworkAdapterIp<'a> {
     pub ip: &'a String,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct GraphicsCard {
+    pub client_id: i32,
+    pub name: String,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = graphics_card)]
 pub struct NewGraphicsCard<'a> {
     pub client_id: &'a i32,
     pub name: &'a String,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct Bios {
+    pub client_id: i32,
+    pub name: String,
+    pub manufacturer: String,
+    pub version: String,
 }
 
 #[derive(Insertable)]

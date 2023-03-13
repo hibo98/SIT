@@ -90,3 +90,15 @@ pub fn software(database: &State<Database>, uuid: Uuid) -> Template {
         Template::render("client_software", context! {})
     }
 }
+
+#[get("/<uuid>/hardware")]
+pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
+    let processors = database.get_client_processors(uuid).unwrap_or(vec![]);
+    let memorys = database.get_client_memory(uuid).unwrap_or(vec![]);
+    let graphics_cards = database.get_client_graphics_cards(uuid).unwrap_or(vec![]);
+    let disks = database.get_client_disks(uuid).unwrap_or(vec![]);
+    let computer_models = database.get_client_computer_model(uuid).unwrap_or(vec![]);
+    let bios_list = database.get_client_bios(uuid).unwrap_or(vec![]);
+    let network_adapters = database.get_client_network_adapters(uuid).unwrap_or(vec![]);
+    Template::render("client_hardware", context! { processors, memorys, graphics_cards, disks, computer_models, bios_list, network_adapters })
+}

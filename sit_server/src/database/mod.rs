@@ -4,6 +4,7 @@ use std::env;
 
 use anyhow::Result;
 use bigdecimal::BigDecimal;
+use diesel::dsl::{count, sum};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -516,5 +517,127 @@ impl Database {
             .inner_join(client::table)
             .left_join(os_info::table.on(os_info::client_id.eq(userprofile::client_id)))
             .load::<(UserProfile, User, Client, Option<OsInfo>)>(&mut conn)?)
+    }
+
+    pub fn get_processors(&self) -> Result<Vec<Processor>> {
+        let mut conn = self.pool.get()?;
+        Ok(processor::table.load::<Processor>(&mut conn)?)
+    }
+
+    pub fn get_client_processors(&self, uuid: Uuid) -> Result<Vec<Processor>> {
+        let mut conn = self.pool.get()?;
+        Ok(processor::table
+            .filter(
+                processor::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .load::<Processor>(&mut conn)?)
+    }
+
+    pub fn get_memorys(&self) -> Result<Vec<Memory>> {
+        let mut conn = self.pool.get()?;
+        Ok(memory_stick::table
+            .group_by(memory_stick::client_id)
+            .select((
+                memory_stick::client_id,
+                sum(memory_stick::capacity),
+                count(memory_stick::capacity),
+            ))
+            .load::<Memory>(&mut conn)?)
+    }
+
+    pub fn get_client_memory(&self, uuid: Uuid) -> Result<Vec<Memory>> {
+        let mut conn = self.pool.get()?;
+        Ok(memory_stick::table
+            .group_by(memory_stick::client_id)
+            .select((
+                memory_stick::client_id,
+                sum(memory_stick::capacity),
+                count(memory_stick::capacity),
+            ))
+            .filter(
+                memory_stick::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .load::<Memory>(&mut conn)?)
+    }
+
+    pub fn get_graphics_cards(&self) -> Result<Vec<GraphicsCard>> {
+        let mut conn = self.pool.get()?;
+        Ok(graphics_card::table.load::<GraphicsCard>(&mut conn)?)
+    }
+
+    pub fn get_client_graphics_cards(&self, uuid: Uuid) -> Result<Vec<GraphicsCard>> {
+        let mut conn = self.pool.get()?;
+        Ok(graphics_card::table.filter(
+            graphics_card::client_id.nullable().eq(client::table
+                .select(client::id)
+                .filter(client::uuid.eq(uuid))
+                .single_value()),
+        ).load::<GraphicsCard>(&mut conn)?)
+    }
+
+    pub fn get_disks(&self) -> Result<Vec<Disk>> {
+        let mut conn = self.pool.get()?;
+        Ok(disks::table.load::<Disk>(&mut conn)?)
+    }
+
+    pub fn get_client_disks(&self, uuid: Uuid) -> Result<Vec<Disk>> {
+        let mut conn = self.pool.get()?;
+        Ok(disks::table.filter(
+            disks::client_id.nullable().eq(client::table
+                .select(client::id)
+                .filter(client::uuid.eq(uuid))
+                .single_value()),
+        ).load::<Disk>(&mut conn)?)
+    }
+
+    pub fn get_computer_models(&self) -> Result<Vec<ComputerModel>> {
+        let mut conn = self.pool.get()?;
+        Ok(computer_model::table.load::<ComputerModel>(&mut conn)?)
+    }
+
+    pub fn get_client_computer_model(&self, uuid: Uuid) -> Result<Vec<ComputerModel>> {
+        let mut conn = self.pool.get()?;
+        Ok(computer_model::table.filter(
+            computer_model::client_id.nullable().eq(client::table
+                .select(client::id)
+                .filter(client::uuid.eq(uuid))
+                .single_value()),
+        ).load::<ComputerModel>(&mut conn)?)
+    }
+
+    pub fn get_bios_list(&self) -> Result<Vec<Bios>> {
+        let mut conn = self.pool.get()?;
+        Ok(bios::table.load::<Bios>(&mut conn)?)
+    }
+
+    pub fn get_client_bios(&self, uuid: Uuid) -> Result<Vec<Bios>> {
+        let mut conn = self.pool.get()?;
+        Ok(bios::table.filter(
+            bios::client_id.nullable().eq(client::table
+                .select(client::id)
+                .filter(client::uuid.eq(uuid))
+                .single_value()),
+        ).load::<Bios>(&mut conn)?)
+    }
+
+    pub fn get_network_adapters(&self) -> Result<Vec<NetworkAdapter>> {
+        let mut conn = self.pool.get()?;
+        Ok(network_adapter::table.load::<NetworkAdapter>(&mut conn)?)
+    }
+
+    pub fn get_client_network_adapters(&self, uuid: Uuid) -> Result<Vec<NetworkAdapter>> {
+        let mut conn = self.pool.get()?;
+        Ok(network_adapter::table.filter(
+            network_adapter::client_id.nullable().eq(client::table
+                .select(client::id)
+                .filter(client::uuid.eq(uuid))
+                .single_value()),
+        ).load::<NetworkAdapter>(&mut conn)?)
     }
 }
