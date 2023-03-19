@@ -12,6 +12,14 @@ pub fn format_filesize_byte(size: f64, exp: u8) -> String {
     }
 }
 
+pub fn format_filesize_byte_iec(size: f64, exp: u8) -> String {
+    if size >= 1024_f64 {
+        format_filesize_byte_iec(size / 1024_f64, exp + 3)
+    } else {
+        format!("{:.1} {}iB", size, get_prefix(exp)).replacen('.', ",", 1)
+    }
+}
+
 pub fn unpack_or(string: Option<&String>, or: String) -> String {
     if let Some(string) = string {
         if string.is_empty() {

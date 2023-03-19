@@ -21,6 +21,28 @@ struct Profile {
     pub size: String,
 }
 
+#[derive(Clone, Debug, Serialize)]
+pub struct Memory {
+    pub capacity: String,
+    pub stick_count: i64,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct MemoryStick {
+    pub capacity: String,
+    pub bank_label: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Disk {
+    pub model: String,
+    pub serial_number: String,
+    pub size: String,
+    pub device_id: String,
+    pub status: String,
+    pub media_type: String,
+}
+
 #[get("/")]
 pub fn index(database: &State<Database>) -> Template {
     let client_info = database.get_clients_with_os_info().unwrap_or(vec![]);
@@ -94,11 +116,70 @@ pub fn software(database: &State<Database>, uuid: Uuid) -> Template {
 #[get("/<uuid>/hardware")]
 pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
     let processors = database.get_client_processors(uuid).unwrap_or(vec![]);
-    let memorys = database.get_client_memory(uuid).unwrap_or(vec![]);
+    let memory: Vec<Memory> = database
+        .get_client_memory(uuid)
+        .unwrap_or(vec![])
+        .iter()
+        .map(|m| Memory {
+            capacity: m
+                .capacity
+                .as_ref()
+                .map(|capacity| {
+                    capacity
+                        .to_f64()
+                        .map(|capacity| display_util::format_filesize_byte_iec(capacity, 0))
+                        .unwrap_or_default()
+                })
+                .unwrap_or_default(),
+            stick_count: m.stick_count,
+        })
+        .collect();
+    let memory_sticks: Vec<MemoryStick> = database
+        .get_client_memory_sticks(uuid)
+        .unwrap_or(vec![])
+        .iter()
+        .map(|m| MemoryStick {
+            capacity: m
+                .capacity
+                .as_ref()
+                .map(|capacity| {
+                    capacity
+                        .to_f64()
+                        .map(|capacity| display_util::format_filesize_byte_iec(capacity, 0))
+                        .unwrap_or_default()
+                })
+                .unwrap_or_default(),
+            bank_label: m.bank_label.clone(),
+        })
+        .collect();
     let graphics_cards = database.get_client_graphics_cards(uuid).unwrap_or(vec![]);
-    let disks = database.get_client_disks(uuid).unwrap_or(vec![]);
+    let disks: Vec<Disk> = database
+        .get_client_disks(uuid)
+        .unwrap_or(vec![])
+        .iter()
+        .map(|d| Disk {
+            model: d.model.clone(),
+            serial_number: d.serial_number.clone(),
+            size: d
+                .size
+                .as_ref()
+                .map(|size| {
+                    size
+                        .to_f64()
+                        .map(|size| display_util::format_filesize_byte(size, 0))
+                        .unwrap_or_default()
+                })
+                .unwrap_or_default(),
+            device_id: d.device_id.clone(),
+            status: d.status.clone(),
+            media_type: d.media_type.clone(),
+        })
+        .collect();
     let computer_models = database.get_client_computer_model(uuid).unwrap_or(vec![]);
     let bios_list = database.get_client_bios(uuid).unwrap_or(vec![]);
     let network_adapters = database.get_client_network_adapters(uuid).unwrap_or(vec![]);
-    Template::render("client_hardware", context! { processors, memorys, graphics_cards, disks, computer_models, bios_list, network_adapters })
+    Template::render(
+        "client_hardware",
+        context! { processors, memory, memory_sticks, graphics_cards, disks, computer_models, bios_list, network_adapters },
+    )
 }

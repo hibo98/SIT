@@ -566,6 +566,18 @@ impl Database {
             .load::<Memory>(&mut conn)?)
     }
 
+    pub fn get_client_memory_sticks(&self, uuid: Uuid) -> Result<Vec<MemoryStick>> {
+        let mut conn = self.pool.get()?;
+        Ok(memory_stick::table
+            .filter(
+                memory_stick::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .load::<MemoryStick>(&mut conn)?)
+    }
+
     pub fn get_graphics_cards(&self) -> Result<Vec<GraphicsCard>> {
         let mut conn = self.pool.get()?;
         Ok(graphics_card::table.load::<GraphicsCard>(&mut conn)?)

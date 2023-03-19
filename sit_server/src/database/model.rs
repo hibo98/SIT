@@ -183,6 +183,14 @@ pub struct Memory {
     pub stick_count: i64,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct MemoryStick {
+    pub id: i32,
+    pub client_id: i32,
+    pub capacity: Option<BigDecimal>,
+    pub bank_label: String,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = memory_stick)]
 pub struct NewMemoryStick<'a> {

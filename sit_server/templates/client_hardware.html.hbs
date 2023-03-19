@@ -29,9 +29,6 @@
         </tbody>
     </table>
     <h1>Arbeitsspeicher</h1>
-    <div class="filters">
-
-    </div>
     <table>
         <thead>
         <tr>
@@ -40,10 +37,26 @@
         </tr>
         </thead>
         <tbody>
-        {{#each memorys}}
+        {{#each memory}}
             <tr>
                 <td>{{this.capacity}}</td>
                 <td>{{this.stick_count}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+    <table>
+        <thead>
+        <tr>
+            <th>Kapazität</th>
+            <th>Bank</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each memory_sticks}}
+            <tr>
+                <td>{{this.capacity}}</td>
+                <td>{{this.bank_label}}</td>
             </tr>
         {{/each}}
         </tbody>
