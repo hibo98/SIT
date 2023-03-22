@@ -21,8 +21,6 @@ pub struct OsInfo;
 struct Win32_OperatingSystem {
     // Name of Operating System
     Caption: String,
-    // Version of Operating System
-    Version: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -73,15 +71,9 @@ impl OsInfo {
         let win32_os: Vec<Win32_OperatingSystem> = wmi_con.query()?;
         if let Some(win32_os) = win32_os.last() {
             if let Some(win32_cs) = win32_cs.last() {
-                let ubr = Self::get_ubr();
-                let version = if let Ok(ubr) = ubr {
-                    format!("{}.{}", win32_os.Version, ubr)
-                } else {
-                    win32_os.Version.clone()
-                };
                 return Ok(WinOsInfo {
                     operating_system: win32_os.Caption.clone(),
-                    os_version: version,
+                    os_version: Self::get_windows_version().unwrap_or_default(),
                     computer_name: win32_cs.DNSHostName.clone(),
                     domain: win32_cs.Domain.clone(),
                 });
@@ -176,9 +168,13 @@ impl OsInfo {
             .sum())
     }
 
-    fn get_ubr() -> Result<u32> {
-        let sub_key = RegKey::predef(HKEY_LOCAL_MACHINE)
+    fn get_windows_version() -> Result<String> {
+        let win_curr_ver = RegKey::predef(HKEY_LOCAL_MACHINE)
             .open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")?;
-        Ok(sub_key.get_value("UBR")?)
+        let major: u32 = win_curr_ver.get_value("CurrentMajorVersionNumber")?;
+        let minor: u32 = win_curr_ver.get_value("CurrentMinorVersionNumber")?;
+        let build: String = win_curr_ver.get_value("CurrentBuild")?;
+        let ubr: u32 = win_curr_ver.get_value("UBR")?;
+        Ok(format!("{}.{}.{}.{}", major, minor, build, ubr))
     }
 }
