@@ -1,23 +1,16 @@
 #[macro_use]
 extern crate windows_service;
 
-use std::ffi::{OsStr, OsString};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
 use std::{env, thread};
 
 use anyhow::Result;
+use clap::builder::NonEmptyStringValueParser;
 use clap::{arg, value_parser, ArgAction, Command};
 use job_scheduler_ng::{Job, JobScheduler};
-use windows_service::service::{
-    ServiceAccess, ServiceControl, ServiceControlAccept, ServiceErrorControl, ServiceExitCode,
-    ServiceInfo, ServiceStartType, ServiceState, ServiceStatus, ServiceType,
-};
-use windows_service::service_control_handler::ServiceControlHandlerResult;
-use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
-use windows_service::{service_control_handler, service_dispatcher};
 use wmi::{COMLibrary, WMIConnection};
 
 use crate::config::Config;
@@ -29,110 +22,9 @@ use crate::win_os_info::OsInfo;
 mod config;
 mod hardware;
 mod server;
+mod service_mgmt;
 mod software;
 mod win_os_info;
-
-const SERVICE_NAME: &str = "SitClientService";
-
-define_windows_service!(sit_service_main, service_main);
-
-fn install_service(service_path: &Path) -> windows_service::Result<()> {
-    let manager =
-        ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CREATE_SERVICE)?;
-
-    let service_info = ServiceInfo {
-        name: OsString::from(SERVICE_NAME),
-        display_name: OsString::from("S-IT Client Service"),
-        service_type: ServiceType::OWN_PROCESS,
-        start_type: ServiceStartType::AutoStart,
-        error_control: ServiceErrorControl::Normal,
-        executable_path: service_path.to_path_buf(),
-        launch_arguments: vec!["start".into(), "-s".into()],
-        dependencies: vec![],
-        account_name: None,
-        account_password: None,
-    };
-
-    manager.create_service(&service_info, ServiceAccess::QUERY_STATUS)?;
-
-    Ok(())
-}
-
-fn uninstall_service() -> windows_service::Result<()> {
-    let manager = ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT)?;
-
-    let service = manager.open_service(SERVICE_NAME, ServiceAccess::DELETE)?;
-    service.delete()?;
-
-    Ok(())
-}
-
-fn start_service() -> windows_service::Result<()> {
-    let manager = ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT)?;
-
-    let service = manager.open_service(SERVICE_NAME, ServiceAccess::START)?;
-    service.start(&[OsStr::new("")])?;
-
-    Ok(())
-}
-
-fn stop_service() -> windows_service::Result<()> {
-    let manager = ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT)?;
-
-    let service = manager.open_service(SERVICE_NAME, ServiceAccess::STOP)?;
-    service.stop()?;
-
-    Ok(())
-}
-
-fn service_main(arguments: Vec<OsString>) {
-    if let Err(_e) = run_service(arguments) {
-        // Handle error in some way.
-    }
-}
-
-fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
-    let (shutdown_tx, shutdown_rx) = mpsc::channel();
-
-    let event_handler = move |control_event| -> ServiceControlHandlerResult {
-        match control_event {
-            ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
-            ServiceControl::Stop => {
-                shutdown_tx.send(()).unwrap();
-                ServiceControlHandlerResult::NoError
-            }
-            _ => ServiceControlHandlerResult::NotImplemented,
-        }
-    };
-
-    // Register system service event handler
-    let status_handle = service_control_handler::register(SERVICE_NAME, event_handler)?;
-
-    // Tell the system that the service is running now
-    status_handle.set_service_status(ServiceStatus {
-        service_type: ServiceType::OWN_PROCESS,
-        current_state: ServiceState::Running,
-        controls_accepted: ServiceControlAccept::STOP,
-        exit_code: ServiceExitCode::Win32(0),
-        checkpoint: 0,
-        wait_hint: Duration::default(),
-        process_id: None,
-    })?;
-
-    internal_main(Some(shutdown_rx)).unwrap();
-
-    status_handle.set_service_status(ServiceStatus {
-        service_type: ServiceType::OWN_PROCESS,
-        current_state: ServiceState::Stopped,
-        controls_accepted: ServiceControlAccept::empty(),
-        exit_code: ServiceExitCode::Win32(0),
-        checkpoint: 0,
-        wait_hint: Duration::default(),
-        process_id: None,
-    })?;
-
-    Ok(())
-}
 
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     let mut scheduler = JobScheduler::new();
@@ -195,15 +87,24 @@ fn cli() -> Command {
         )
         .subcommand(
             Command::new("install-service")
-                .about("Installs Windows Service")
+                .about("Installs windows service, if already installed updates configuration")
                 .arg(
                     arg!(-p --path <PATH> "Path to the executable")
                         .value_parser(value_parser!(PathBuf)),
                 ),
         )
-        .subcommand(Command::new("uninstall-service").about("Uninstalls Windows Service"))
-        .subcommand(Command::new("start-service").about("Start Windows Service"))
-        .subcommand(Command::new("stop-service").about("Stop Windows Service"))
+        .subcommand(Command::new("uninstall-service").about("Uninstalls windows service"))
+        .subcommand(Command::new("start-service").about("Start windows service"))
+        .subcommand(Command::new("stop-service").about("Stop windows service"))
+        .subcommand(
+            Command::new("debug")
+                .about("Executes functions for debug reasons")
+                .arg(
+                    arg!(-f --function <FUNCTION> "Function to execute")
+                        .value_parser(NonEmptyStringValueParser::new())
+                        .required(true),
+                ),
+        )
 }
 
 fn main() -> Result<()> {
@@ -214,7 +115,7 @@ fn main() -> Result<()> {
             let service = sub_matches.get_one::<bool>("service");
             Config::setup()?;
             if let Some(true) = service {
-                service_dispatcher::start(SERVICE_NAME, sit_service_main)?;
+                service_mgmt::run_service_main()?;
             } else {
                 internal_main(None)?;
             }
@@ -222,20 +123,33 @@ fn main() -> Result<()> {
         Some(("install-service", sub_matches)) => {
             let path = sub_matches.get_one::<PathBuf>("path");
             if let Some(path) = path {
-                install_service(path)?;
+                service_mgmt::install_service(path)?;
             } else {
-                let exe = &env::current_exe()?;
-                install_service(exe)?;
+                service_mgmt::install_service(&env::current_exe()?)?;
             }
         }
         Some(("uninstall-service", _)) => {
-            uninstall_service()?;
+            service_mgmt::uninstall_service()?;
         }
         Some(("start-service", _)) => {
-            start_service()?;
+            service_mgmt::start_service()?;
         }
         Some(("stop-service", _)) => {
-            stop_service()?;
+            service_mgmt::stop_service()?;
+        }
+        Some(("debug", sub_matches)) => {
+            let com_con = COMLibrary::new()?;
+            let wmi_con = WMIConnection::new(com_con)?;
+            let func = sub_matches.get_one::<String>("function").cloned().unwrap_or_default();
+            if func == *"hardware-info" {
+                println!("{:#?}", Hardware::get_hardware_info(&wmi_con));
+            } else if func == *"software-list" {
+                println!("{:#?}", Software::get_software_list());
+            } else if func == *"os-info" {
+                println!("{:#?}", OsInfo::get_os_info(&wmi_con));
+            } else if func == *"user-profiles" {
+                println!("{:#?}", OsInfo::get_user_profiles(&wmi_con));
+            }
         }
         _ => unreachable!(),
     }
