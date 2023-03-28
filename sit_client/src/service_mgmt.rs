@@ -35,9 +35,11 @@ pub fn install_service(service_path: &Path) -> Result<()> {
         account_password: None,
     };
 
-    let service = get_service_handle(ServiceAccess::CHANGE_CONFIG);
+    let service = get_service_handle(ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::CHANGE_CONFIG);
     let service_handle = if let Ok(service_handle) = service {
-        stop_service()?;
+        if service_handle.query_status()?.current_state != ServiceState::Stopped {
+            service_handle.stop()?;
+        }
         service_handle.change_config(&service_info)?;
         service_handle
     } else {
@@ -50,21 +52,27 @@ pub fn install_service(service_path: &Path) -> Result<()> {
 }
 
 pub fn uninstall_service() -> Result<()> {
-    stop_service()?;
-    let service = get_service_handle(ServiceAccess::DELETE)?;
+    let service = get_service_handle(ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE)?;
+    if service.query_status()?.current_state != ServiceState::Stopped {
+        service.stop()?;
+    }
     service.delete()?;
     Ok(())
 }
 
 pub fn start_service() -> Result<()> {
-    let service = get_service_handle(ServiceAccess::START)?;
-    service.start(&[OsStr::new("")])?;
+    let service = get_service_handle(ServiceAccess::QUERY_STATUS | ServiceAccess::START)?;
+    if service.query_status()?.current_state != ServiceState::Running {
+        service.start(&[OsStr::new("")])?;
+    }
     Ok(())
 }
 
 pub fn stop_service() -> Result<()> {
-    let service = get_service_handle(ServiceAccess::STOP)?;
-    service.stop()?;
+    let service = get_service_handle(ServiceAccess::QUERY_STATUS | ServiceAccess::STOP)?;
+    if service.query_status()?.current_state != ServiceState::Stopped {
+        service.stop()?;
+    }
     Ok(())
 }
 
