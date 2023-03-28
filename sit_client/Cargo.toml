@@ -2,7 +2,7 @@ cargo-features = ["per-package-target"]
 
 [package]
 name = "sit_client"
-version = "1.0.2"
+version = "1.0.4"
 edition = "2021"
 default-target = "x86_64-pc-windows-gnu"
 
