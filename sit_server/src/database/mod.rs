@@ -537,6 +537,7 @@ impl Database {
                 max(processor::address_width),
                 count(processor::name),
             ))
+            .order_by(processor::name)
             .load::<ProcessorCount>(&mut conn)?)
     }
 
