@@ -256,6 +256,13 @@ pub struct Disk {
     pub media_type: String,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct DiskCount {
+    pub model: String,
+    pub size: Option<BigDecimal>,
+    pub count: i64,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = disks)]
 pub struct NewDisk<'a> {

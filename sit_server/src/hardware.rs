@@ -57,7 +57,7 @@ pub fn graphics_cards(database: &State<Database>) -> Template {
 
 #[get("/disks")]
 pub fn disks(database: &State<Database>) -> Template {
-    let disks = database.get_disks().unwrap_or(vec![]);
+    let disks = database.get_disks_count().unwrap_or(vec![]);
     Template::render("hardware/disks", context! { disks })
 }
 

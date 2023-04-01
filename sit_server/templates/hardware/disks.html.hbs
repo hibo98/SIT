@@ -8,22 +8,16 @@
         <thead>
         <tr>
             <th>Model</th>
-            <th>Seriennummer</th>
             <th>Größe</th>
-            <th>Geräte-ID</th>
-            <th>Status</th>
-            <th>Media Type</th>
+            <th>Anzahl Geräte</th>
         </tr>
         </thead>
         <tbody>
         {{#each disks}}
             <tr>
                 <td>{{this.model}}</td>
-                <td>{{this.serial_number}}</td>
                 <td>{{this.size}}</td>
-                <td>{{this.device_id}}</td>
-                <td>{{this.status}}</td>
-                <td>{{this.media_type}}</td>
+                <td>{{this.count}}</td>
             </tr>
         {{/each}}
         </tbody>

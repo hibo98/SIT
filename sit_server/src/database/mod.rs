@@ -607,9 +607,13 @@ impl Database {
             .load::<GraphicsCard>(&mut conn)?)
     }
 
-    pub fn get_disks(&self) -> Result<Vec<Disk>> {
+    pub fn get_disks_count(&self) -> Result<Vec<DiskCount>> {
         let mut conn = self.pool.get()?;
-        Ok(disks::table.load::<Disk>(&mut conn)?)
+        Ok(disks::table
+            .group_by((disks::model, disks::size))
+            .select((disks::model, disks::size, count_star()))
+            .order_by(disks::model)
+            .load::<DiskCount>(&mut conn)?)
     }
 
     pub fn get_client_disks(&self, uuid: Uuid) -> Result<Vec<Disk>> {
