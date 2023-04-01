@@ -551,7 +551,7 @@ impl Database {
     pub fn get_memorys_count(&self) -> Result<Vec<MemoryCount>> {
         let mut conn = self.pool.get()?;
         Ok(diesel::sql_query(
-            "SELECT capacity, sticks, COUNT(*) FROM memory GROUP BY capacity, sticks;",
+            "SELECT capacity, sticks, COUNT(*) FROM memory GROUP BY capacity, sticks ORDER BY capacity, sticks;",
         )
         .load(&mut conn)?)
     }
