@@ -168,6 +168,13 @@ pub struct ComputerModel {
     pub serial_number: String,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct ComputerModelCount {
+    pub manufacturer: String,
+    pub model_family: String,
+    pub count: i64,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = computer_model)]
 pub struct NewComputerModel<'a> {

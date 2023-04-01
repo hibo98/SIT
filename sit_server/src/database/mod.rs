@@ -628,9 +628,13 @@ impl Database {
             .load::<Disk>(&mut conn)?)
     }
 
-    pub fn get_computer_models(&self) -> Result<Vec<ComputerModel>> {
+    pub fn get_computer_models_count(&self) -> Result<Vec<ComputerModelCount>> {
         let mut conn = self.pool.get()?;
-        Ok(computer_model::table.load::<ComputerModel>(&mut conn)?)
+        Ok(computer_model::table
+            .group_by((computer_model::model_family, computer_model::manufacturer))
+            .select((computer_model::model_family, computer_model::manufacturer, count_star()))
+            .order_by((computer_model::manufacturer, computer_model::model_family))
+            .load::<ComputerModelCount>(&mut conn)?)
     }
 
     pub fn get_client_computer_model(&self, uuid: Uuid) -> Result<Vec<ComputerModel>> {

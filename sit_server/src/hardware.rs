@@ -90,7 +90,7 @@ pub fn disks(database: &State<Database>) -> Template {
 
 #[get("/models")]
 pub fn models(database: &State<Database>) -> Template {
-    let computer_models = database.get_computer_models().unwrap_or(vec![]);
+    let computer_models = database.get_computer_models_count().unwrap_or(vec![]);
     Template::render("hardware/models", context! { computer_models })
 }
 
