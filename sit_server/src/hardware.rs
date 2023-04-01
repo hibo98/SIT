@@ -51,7 +51,7 @@ pub fn memory(database: &State<Database>) -> Template {
 
 #[get("/graphics_cards")]
 pub fn graphics_cards(database: &State<Database>) -> Template {
-    let graphics_cards = database.get_graphics_cards().unwrap_or(vec![]);
+    let graphics_cards = database.get_graphics_cards_count().unwrap_or(vec![]);
     Template::render("hardware/graphics_cards", context! { graphics_cards })
 }
 

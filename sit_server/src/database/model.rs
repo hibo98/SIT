@@ -297,6 +297,12 @@ pub struct GraphicsCard {
     pub name: String,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct GraphicsCardCount {
+    pub name: String,
+    pub count: i64,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = graphics_card)]
 pub struct NewGraphicsCard<'a> {

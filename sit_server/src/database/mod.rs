@@ -4,7 +4,7 @@ use std::env;
 
 use anyhow::Result;
 use bigdecimal::BigDecimal;
-use diesel::dsl::{count, max, sum};
+use diesel::dsl::{count, count_star, max, sum};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -586,9 +586,12 @@ impl Database {
             .load::<MemoryStick>(&mut conn)?)
     }
 
-    pub fn get_graphics_cards(&self) -> Result<Vec<GraphicsCard>> {
+    pub fn get_graphics_cards_count(&self) -> Result<Vec<GraphicsCardCount>> {
         let mut conn = self.pool.get()?;
-        Ok(graphics_card::table.load::<GraphicsCard>(&mut conn)?)
+        Ok(graphics_card::table
+            .group_by(graphics_card::name)
+            .select((graphics_card::name, count_star()))
+            .load::<GraphicsCardCount>(&mut conn)?)
     }
 
     pub fn get_client_graphics_cards(&self, uuid: Uuid) -> Result<Vec<GraphicsCard>> {

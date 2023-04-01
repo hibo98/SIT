@@ -8,12 +8,14 @@
         <thead>
         <tr>
             <th>Name</th>
+            <th>Anzahl Geräte</th>
         </tr>
         </thead>
         <tbody>
         {{#each graphics_cards}}
             <tr>
                 <td>{{this.name}}</td>
+                <td>{{this.count}}</td>
             </tr>
         {{/each}}
         </tbody>
