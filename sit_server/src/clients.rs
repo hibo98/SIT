@@ -65,16 +65,13 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
     let client_profiles = database.get_client_profiles(&uuid);
     if let Ok(client_profiles) = client_profiles {
         let profiles: Vec<Profile> = client_profiles
-            .iter()
+            .into_iter()
             .map(|(up, u)| Profile {
-                user_sid: u.sid.clone(),
-                user_name: display_util::unpack_or(
-                    u.username.as_ref(),
-                    "<unknown user>".to_owned(),
-                ),
+                user_sid: u.sid,
+                user_name: u.username.unwrap_or("<unknown user>".to_owned()),
                 health_status: ms_magic::resolve_profile_health_status(up.health_status),
                 roaming_configured: up.roaming_configured,
-                roaming_path: up.roaming_path.clone(),
+                roaming_path: up.roaming_path,
                 roaming_preference: up.roaming_preference,
                 last_use_time: display_util::format_date_time(up.last_use_time),
                 last_download_time: up
@@ -119,7 +116,7 @@ pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
     let memory: Vec<Memory> = database
         .get_client_memory(uuid)
         .unwrap_or(vec![])
-        .iter()
+        .into_iter()
         .map(|m| Memory {
             capacity: m
                 .capacity
@@ -137,7 +134,7 @@ pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
     let memory_sticks: Vec<MemoryStick> = database
         .get_client_memory_sticks(uuid)
         .unwrap_or(vec![])
-        .iter()
+        .into_iter()
         .map(|m| MemoryStick {
             capacity: m
                 .capacity
@@ -149,30 +146,29 @@ pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
                         .unwrap_or_default()
                 })
                 .unwrap_or_default(),
-            bank_label: m.bank_label.clone(),
+            bank_label: m.bank_label,
         })
         .collect();
     let graphics_cards = database.get_client_graphics_cards(uuid).unwrap_or(vec![]);
     let disks: Vec<Disk> = database
         .get_client_disks(uuid)
         .unwrap_or(vec![])
-        .iter()
+        .into_iter()
         .map(|d| Disk {
-            model: d.model.clone(),
-            serial_number: d.serial_number.clone(),
+            model: d.model,
+            serial_number: d.serial_number,
             size: d
                 .size
                 .as_ref()
                 .map(|size| {
-                    size
-                        .to_f64()
+                    size.to_f64()
                         .map(|size| display_util::format_filesize_byte(size, 0))
                         .unwrap_or_default()
                 })
                 .unwrap_or_default(),
-            device_id: d.device_id.clone(),
-            status: d.status.clone(),
-            media_type: d.media_type.clone(),
+            device_id: d.device_id,
+            status: d.status,
+            media_type: d.media_type,
         })
         .collect();
     let computer_models = database.get_client_computer_model(uuid).unwrap_or(vec![]);

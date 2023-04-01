@@ -20,18 +20,6 @@ pub fn format_filesize_byte_iec(size: f64, exp: u8) -> String {
     }
 }
 
-pub fn unpack_or(string: Option<&String>, or: String) -> String {
-    if let Some(string) = string {
-        if string.is_empty() {
-            or
-        } else {
-            string.clone()
-        }
-    } else {
-        or
-    }
-}
-
 fn get_prefix(exp: u8) -> String {
     match exp {
         0 => "",

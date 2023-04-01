@@ -34,11 +34,11 @@ pub fn index(database: &State<Database>) -> Template {
     let profiles: Vec<UserWithProfileCount> = database
         .get_profiles()
         .unwrap_or(vec![])
-        .iter()
+        .into_iter()
         .map(|p| UserWithProfileCount {
             id: p.id,
-            sid: p.sid.clone(),
-            username: display_util::unpack_or(p.username.as_ref(), "<unknown user>".to_owned()),
+            sid: p.sid,
+            username: p.username.unwrap_or("<unknown user>".to_owned()),
             count: p.count,
         })
         .collect();
@@ -50,22 +50,21 @@ pub fn profile(database: &State<Database>, sid: String) -> Template {
     let profiles_result = database.get_profile_info(sid);
     if let Ok(profiles) = profiles_result {
         let profile: Vec<Profile> = profiles
-            .iter()
+            .into_iter()
             .map(|(up, _, c, os)| Profile {
                 client_uuid: c.uuid,
                 os_computer_name: os
-                    .as_ref()
                     .map(|os| {
-                        if let Some(domain) = &os.domain {
+                        if let Some(domain) = os.domain {
                             format!("{}.{}", os.computer_name, domain)
                         } else {
-                            os.computer_name.clone()
+                            os.computer_name
                         }
                     })
                     .unwrap_or("<no computer name>".to_string()),
                 health_status: ms_magic::resolve_profile_health_status(up.health_status),
                 roaming_configured: up.roaming_configured,
-                roaming_path: up.roaming_path.clone(),
+                roaming_path: up.roaming_path,
                 roaming_preference: up.roaming_preference,
                 last_use_time: display_util::format_date_time(up.last_use_time),
                 last_download_time: up
