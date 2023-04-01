@@ -8,14 +8,14 @@
         <thead>
         <tr>
             <th>Name</th>
-            <th>MAC-Adresse</th>
+            <th>Anzahl Geräte</th>
         </tr>
         </thead>
         <tbody>
         {{#each network_adapters}}
             <tr>
                 <td>{{this.name}}</td>
-                <td>{{this.mac_address}}</td>
+                <td>{{this.count}}</td>
             </tr>
         {{/each}}
         </tbody>

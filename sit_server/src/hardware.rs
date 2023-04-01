@@ -96,6 +96,6 @@ pub fn models(database: &State<Database>) -> Template {
 
 #[get("/network_adapters")]
 pub fn network_adapters(database: &State<Database>) -> Template {
-    let network_adapters = database.get_network_adapters().unwrap_or(vec![]);
+    let network_adapters = database.get_network_adapters_count().unwrap_or(vec![]);
     Template::render("hardware/network_adapters", context! { network_adapters })
 }

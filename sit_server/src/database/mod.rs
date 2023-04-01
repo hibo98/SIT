@@ -632,7 +632,11 @@ impl Database {
         let mut conn = self.pool.get()?;
         Ok(computer_model::table
             .group_by((computer_model::model_family, computer_model::manufacturer))
-            .select((computer_model::model_family, computer_model::manufacturer, count_star()))
+            .select((
+                computer_model::model_family,
+                computer_model::manufacturer,
+                count_star(),
+            ))
             .order_by((computer_model::manufacturer, computer_model::model_family))
             .load::<ComputerModelCount>(&mut conn)?)
     }
@@ -661,9 +665,13 @@ impl Database {
             .load::<Bios>(&mut conn)?)
     }
 
-    pub fn get_network_adapters(&self) -> Result<Vec<NetworkAdapter>> {
+    pub fn get_network_adapters_count(&self) -> Result<Vec<NetworkAdapterCount>> {
         let mut conn = self.pool.get()?;
-        Ok(network_adapter::table.load::<NetworkAdapter>(&mut conn)?)
+        Ok(network_adapter::table
+            .group_by(network_adapter::name)
+            .select((network_adapter::name, count_star()))
+            .order_by(network_adapter::name)
+            .load::<NetworkAdapterCount>(&mut conn)?)
     }
 
     pub fn get_client_network_adapters(&self, uuid: Uuid) -> Result<Vec<NetworkAdapter>> {

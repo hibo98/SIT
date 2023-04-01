@@ -290,6 +290,12 @@ pub struct NetworkAdapter {
     pub mac_address: Option<String>,
 }
 
+#[derive(Debug, Queryable, Serialize)]
+pub struct NetworkAdapterCount {
+    pub name: String,
+    pub count: i64,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = network_adapter)]
 pub struct NewNetworkAdapter<'a> {
