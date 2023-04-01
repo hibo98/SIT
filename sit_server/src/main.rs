@@ -28,7 +28,19 @@ async fn main() -> Result<(), rocket::Error> {
         .manage(Database::establish_connection())
         .attach(Template::fairing())
         .mount("/", routes![index])
-        .mount("/hardware/", routes![hardware::index])
+        .mount(
+            "/hardware/",
+            routes![
+                hardware::index,
+                hardware::processors,
+                hardware::memory,
+                hardware::graphics_cards,
+                hardware::disks,
+                hardware::models,
+                hardware::bios,
+                hardware::network_adapters
+            ],
+        )
         .mount(
             "/software/",
             routes![

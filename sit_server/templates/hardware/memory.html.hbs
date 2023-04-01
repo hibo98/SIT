@@ -1,0 +1,24 @@
+{{> _layout_hardware-top title="Hardware - Arbeitsspeicher"}}
+<div class="hardware-table">
+    <h1>Arbeitsspeicher</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Gesamtkapazität</th>
+            <th>Anzahl Module</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each memorys}}
+            <tr>
+                <td>{{this.capacity}}</td>
+                <td>{{this.stick_count}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_hardware-bottom}}

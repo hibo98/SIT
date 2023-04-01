@@ -1,0 +1,24 @@
+{{> _layout_hardware-top title="Hardware - Netzwerkadapter"}}
+<div class="hardware-table">
+    <h1>Netzwerkadapter</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>MAC-Adresse</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each network_adapters}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.mac_address}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_hardware-bottom}}

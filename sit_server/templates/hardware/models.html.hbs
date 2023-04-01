@@ -1,0 +1,26 @@
+{{> _layout_hardware-top title="Hardware - Computer Modelle"}}
+<div class="hardware-table">
+    <h1>Computer Modelle</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Hersteller</th>
+            <th>Modellfamilie</th>
+            <th>Seriennummer</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each computer_models}}
+            <tr>
+                <td>{{this.manufacturer}}</td>
+                <td>{{this.model_family}}</td>
+                <td>{{this.serial_number}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_hardware-bottom}}

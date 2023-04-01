@@ -4,7 +4,7 @@ use std::env;
 
 use anyhow::Result;
 use bigdecimal::BigDecimal;
-use diesel::dsl::{count, sum};
+use diesel::dsl::{count, max, sum};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -524,6 +524,22 @@ impl Database {
         Ok(processor::table.load::<Processor>(&mut conn)?)
     }
 
+    pub fn get_processors_count(&self) -> Result<Vec<ProcessorCount>> {
+        let mut conn = self.pool.get()?;
+        Ok(processor::table
+            .group_by((processor::name, processor::manufacturer))
+            .select((
+                processor::name,
+                processor::manufacturer,
+                max(processor::cores),
+                max(processor::logical_cores),
+                max(processor::clock_speed),
+                max(processor::address_width),
+                count(processor::name),
+            ))
+            .load::<ProcessorCount>(&mut conn)?)
+    }
+
     pub fn get_client_processors(&self, uuid: Uuid) -> Result<Vec<Processor>> {
         let mut conn = self.pool.get()?;
         Ok(processor::table
@@ -585,12 +601,14 @@ impl Database {
 
     pub fn get_client_graphics_cards(&self, uuid: Uuid) -> Result<Vec<GraphicsCard>> {
         let mut conn = self.pool.get()?;
-        Ok(graphics_card::table.filter(
-            graphics_card::client_id.nullable().eq(client::table
-                .select(client::id)
-                .filter(client::uuid.eq(uuid))
-                .single_value()),
-        ).load::<GraphicsCard>(&mut conn)?)
+        Ok(graphics_card::table
+            .filter(
+                graphics_card::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .load::<GraphicsCard>(&mut conn)?)
     }
 
     pub fn get_disks(&self) -> Result<Vec<Disk>> {
@@ -600,12 +618,14 @@ impl Database {
 
     pub fn get_client_disks(&self, uuid: Uuid) -> Result<Vec<Disk>> {
         let mut conn = self.pool.get()?;
-        Ok(disks::table.filter(
-            disks::client_id.nullable().eq(client::table
-                .select(client::id)
-                .filter(client::uuid.eq(uuid))
-                .single_value()),
-        ).load::<Disk>(&mut conn)?)
+        Ok(disks::table
+            .filter(
+                disks::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .load::<Disk>(&mut conn)?)
     }
 
     pub fn get_computer_models(&self) -> Result<Vec<ComputerModel>> {
@@ -615,12 +635,14 @@ impl Database {
 
     pub fn get_client_computer_model(&self, uuid: Uuid) -> Result<Vec<ComputerModel>> {
         let mut conn = self.pool.get()?;
-        Ok(computer_model::table.filter(
-            computer_model::client_id.nullable().eq(client::table
-                .select(client::id)
-                .filter(client::uuid.eq(uuid))
-                .single_value()),
-        ).load::<ComputerModel>(&mut conn)?)
+        Ok(computer_model::table
+            .filter(
+                computer_model::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .load::<ComputerModel>(&mut conn)?)
     }
 
     pub fn get_bios_list(&self) -> Result<Vec<Bios>> {
@@ -630,12 +652,14 @@ impl Database {
 
     pub fn get_client_bios(&self, uuid: Uuid) -> Result<Vec<Bios>> {
         let mut conn = self.pool.get()?;
-        Ok(bios::table.filter(
-            bios::client_id.nullable().eq(client::table
-                .select(client::id)
-                .filter(client::uuid.eq(uuid))
-                .single_value()),
-        ).load::<Bios>(&mut conn)?)
+        Ok(bios::table
+            .filter(
+                bios::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .load::<Bios>(&mut conn)?)
     }
 
     pub fn get_network_adapters(&self) -> Result<Vec<NetworkAdapter>> {
@@ -645,11 +669,13 @@ impl Database {
 
     pub fn get_client_network_adapters(&self, uuid: Uuid) -> Result<Vec<NetworkAdapter>> {
         let mut conn = self.pool.get()?;
-        Ok(network_adapter::table.filter(
-            network_adapter::client_id.nullable().eq(client::table
-                .select(client::id)
-                .filter(client::uuid.eq(uuid))
-                .single_value()),
-        ).load::<NetworkAdapter>(&mut conn)?)
+        Ok(network_adapter::table
+            .filter(
+                network_adapter::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .load::<NetworkAdapter>(&mut conn)?)
     }
 }

@@ -1,0 +1,26 @@
+{{> _layout_hardware-top title="Hardware - Bios"}}
+<div class="hardware-table">
+    <h1>Bios</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Hersteller</th>
+            <th>Version</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each bios_list}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.manufacturer}}</td>
+                <td>{{this.version}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_hardware-bottom}}

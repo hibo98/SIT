@@ -1,0 +1,32 @@
+{{> _layout_hardware-top title="Hardware - Prozessoren"}}
+<div class="hardware-table">
+    <h1>Prozessoren</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Hersteller</th>
+            <th>Kerne</th>
+            <th>Logische Kerne</th>
+            <th>Takt</th>
+            <th>Adressbreite</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each processors}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.manufacturer}}</td>
+                <td>{{this.cores}}</td>
+                <td>{{this.logical_cores}}</td>
+                <td>{{this.clock_speed}} MHz</td>
+                <td>{{this.address_width}}-bit</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_hardware-bottom}}

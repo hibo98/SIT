@@ -210,6 +210,17 @@ pub struct Processor {
     pub address_width: i32,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct ProcessorCount {
+    pub name: String,
+    pub manufacturer: String,
+    pub cores: Option<i64>,
+    pub logical_cores: Option<i64>,
+    pub clock_speed: Option<i64>,
+    pub address_width: Option<i32>,
+    pub count: i64,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = processor)]
 pub struct NewProcessor<'a> {

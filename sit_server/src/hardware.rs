@@ -5,13 +5,48 @@ use crate::database::Database;
 
 
 #[get("/")]
-pub fn index(database: &State<Database>) -> Template {
-    let processors = database.get_processors().unwrap_or(vec![]);
+pub fn index() -> Template {
+    Template::render("hardware", context! { })
+}
+
+#[get("/processors")]
+pub fn processors(database: &State<Database>) -> Template {
+    let processors = database.get_processors_count().unwrap_or(vec![]);
+    Template::render("hardware/processors", context! { processors })
+}
+
+#[get("/memory")]
+pub fn memory(database: &State<Database>) -> Template {
     let memorys = database.get_memorys().unwrap_or(vec![]);
+    Template::render("hardware/memory", context! { memorys })
+}
+
+#[get("/graphics_cards")]
+pub fn graphics_cards(database: &State<Database>) -> Template {
     let graphics_cards = database.get_graphics_cards().unwrap_or(vec![]);
+    Template::render("hardware/graphics_cards", context! { graphics_cards })
+}
+
+#[get("/disks")]
+pub fn disks(database: &State<Database>) -> Template {
     let disks = database.get_disks().unwrap_or(vec![]);
+    Template::render("hardware/disks", context! { disks })
+}
+
+#[get("/models")]
+pub fn models(database: &State<Database>) -> Template {
     let computer_models = database.get_computer_models().unwrap_or(vec![]);
+    Template::render("hardware/models", context! { computer_models })
+}
+
+#[get("/bios")]
+pub fn bios(database: &State<Database>) -> Template {
     let bios_list = database.get_bios_list().unwrap_or(vec![]);
+    Template::render("hardware/bios", context! { bios_list })
+}
+
+#[get("/network_adapters")]
+pub fn network_adapters(database: &State<Database>) -> Template {
     let network_adapters = database.get_network_adapters().unwrap_or(vec![]);
-    Template::render("hardware", context! { processors, memorys, graphics_cards, disks, computer_models, bios_list, network_adapters })
+    Template::render("hardware/network_adapters", context! { network_adapters })
 }

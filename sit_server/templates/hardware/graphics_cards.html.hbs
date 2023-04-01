@@ -1,0 +1,22 @@
+{{> _layout_hardware-top title="Hardware - Grafikkarten"}}
+<div class="hardware-table">
+    <h1>Grafikkarten</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each graphics_cards}}
+            <tr>
+                <td>{{this.name}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_hardware-bottom}}
