@@ -649,11 +649,6 @@ impl Database {
             .load::<ComputerModel>(&mut conn)?)
     }
 
-    pub fn get_bios_list(&self) -> Result<Vec<Bios>> {
-        let mut conn = self.pool.get()?;
-        Ok(bios::table.load::<Bios>(&mut conn)?)
-    }
-
     pub fn get_client_bios(&self, uuid: Uuid) -> Result<Vec<Bios>> {
         let mut conn = self.pool.get()?;
         Ok(bios::table

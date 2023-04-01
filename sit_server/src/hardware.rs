@@ -94,12 +94,6 @@ pub fn models(database: &State<Database>) -> Template {
     Template::render("hardware/models", context! { computer_models })
 }
 
-#[get("/bios")]
-pub fn bios(database: &State<Database>) -> Template {
-    let bios_list = database.get_bios_list().unwrap_or(vec![]);
-    Template::render("hardware/bios", context! { bios_list })
-}
-
 #[get("/network_adapters")]
 pub fn network_adapters(database: &State<Database>) -> Template {
     let network_adapters = database.get_network_adapters().unwrap_or(vec![]);

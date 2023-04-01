@@ -37,7 +37,6 @@ async fn main() -> Result<(), rocket::Error> {
                 hardware::graphics_cards,
                 hardware::disks,
                 hardware::models,
-                hardware::bios,
                 hardware::network_adapters
             ],
         )
