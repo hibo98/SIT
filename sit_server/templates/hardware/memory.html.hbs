@@ -9,13 +9,15 @@
         <tr>
             <th>Gesamtkapazität</th>
             <th>Anzahl Module</th>
+            <th>Anzahl Geräte</th>
         </tr>
         </thead>
         <tbody>
         {{#each memorys}}
             <tr>
                 <td>{{this.capacity}}</td>
-                <td>{{this.stick_count}}</td>
+                <td>{{this.sticks}}</td>
+                <td>{{this.count}}</td>
             </tr>
         {{/each}}
         </tbody>

@@ -1,3 +1,4 @@
+use diesel::sql_types::{Int8, Nullable, Numeric};
 use uuid::Uuid;
 
 use super::schema::*;
@@ -162,7 +163,7 @@ pub struct NewUserProfileWithoutSize<'a> {
 #[derive(Clone, Debug, Queryable, Serialize)]
 pub struct ComputerModel {
     pub client_id: i32,
-    pub manufacturer:String,
+    pub manufacturer: String,
     pub model_family: String,
     pub serial_number: String,
 }
@@ -181,6 +182,16 @@ pub struct Memory {
     pub client_id: i32,
     pub capacity: Option<BigDecimal>,
     pub stick_count: i64,
+}
+
+#[derive(Clone, Debug, QueryableByName, Serialize)]
+pub struct MemoryCount {
+    #[diesel(sql_type = Nullable<Numeric>)]
+    pub capacity: Option<BigDecimal>,
+    #[diesel(sql_type = Nullable<Int8>)]
+    pub sticks: Option<i64>,
+    #[diesel(sql_type = Int8)]
+    pub count: i64,
 }
 
 #[derive(Clone, Debug, Queryable, Serialize)]

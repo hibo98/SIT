@@ -1,12 +1,20 @@
+use bigdecimal::ToPrimitive;
 use rocket::State;
 use rocket_dyn_templates::{context, Template};
+use serde::Serialize;
 
-use crate::database::Database;
+use crate::{database::Database, display_util};
 
+#[derive(Clone, Debug, Serialize)]
+pub struct MemoryCount {
+    pub capacity: String,
+    pub sticks: Option<i64>,
+    pub count: i64,
+}
 
 #[get("/")]
 pub fn index() -> Template {
-    Template::render("hardware", context! { })
+    Template::render("hardware", context! {})
 }
 
 #[get("/processors")]
@@ -17,8 +25,28 @@ pub fn processors(database: &State<Database>) -> Template {
 
 #[get("/memory")]
 pub fn memory(database: &State<Database>) -> Template {
-    let memorys = database.get_memorys().unwrap_or(vec![]);
-    Template::render("hardware/memory", context! { memorys })
+    let memorys = database.get_memorys_count();
+    if let Ok(memorys) = memorys {
+        let memorys: Vec<MemoryCount> = memorys
+            .into_iter()
+            .map(|m| MemoryCount {
+                capacity: m
+                    .capacity
+                    .as_ref()
+                    .map(|size| {
+                        size.to_f64()
+                            .map(|size| display_util::format_filesize_byte_iec(size, 0))
+                            .unwrap_or_default()
+                    })
+                    .unwrap_or_default(),
+                sticks: m.sticks,
+                count: m.count,
+            })
+            .collect();
+        Template::render("hardware/memory", context! { memorys })
+    } else {
+        Template::render("hardware/memory", context! {})
+    }
 }
 
 #[get("/graphics_cards")]

@@ -519,11 +519,6 @@ impl Database {
             .load::<(UserProfile, User, Client, Option<OsInfo>)>(&mut conn)?)
     }
 
-    pub fn get_processors(&self) -> Result<Vec<Processor>> {
-        let mut conn = self.pool.get()?;
-        Ok(processor::table.load::<Processor>(&mut conn)?)
-    }
-
     pub fn get_processors_count(&self) -> Result<Vec<ProcessorCount>> {
         let mut conn = self.pool.get()?;
         Ok(processor::table
@@ -553,16 +548,12 @@ impl Database {
             .load::<Processor>(&mut conn)?)
     }
 
-    pub fn get_memorys(&self) -> Result<Vec<Memory>> {
+    pub fn get_memorys_count(&self) -> Result<Vec<MemoryCount>> {
         let mut conn = self.pool.get()?;
-        Ok(memory_stick::table
-            .group_by(memory_stick::client_id)
-            .select((
-                memory_stick::client_id,
-                sum(memory_stick::capacity),
-                count(memory_stick::capacity),
-            ))
-            .load::<Memory>(&mut conn)?)
+        Ok(diesel::sql_query(
+            "SELECT capacity, sticks, COUNT(*) FROM memory GROUP BY capacity, sticks;",
+        )
+        .load(&mut conn)?)
     }
 
     pub fn get_client_memory(&self, uuid: Uuid) -> Result<Vec<Memory>> {
