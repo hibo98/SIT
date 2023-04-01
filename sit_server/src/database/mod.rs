@@ -591,6 +591,7 @@ impl Database {
         Ok(graphics_card::table
             .group_by(graphics_card::name)
             .select((graphics_card::name, count_star()))
+            .order_by(graphics_card::name)
             .load::<GraphicsCardCount>(&mut conn)?)
     }
 
