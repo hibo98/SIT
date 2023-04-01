@@ -75,7 +75,7 @@ pub fn disks(database: &State<Database>) -> Template {
                     .as_ref()
                     .map(|size| {
                         size.to_f64()
-                            .map(|size| display_util::format_filesize_byte_iec(size, 0))
+                            .map(|size| display_util::format_filesize_byte(size, 0))
                             .unwrap_or_default()
                     })
                     .unwrap_or_default(),
