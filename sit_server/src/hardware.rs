@@ -12,6 +12,13 @@ pub struct MemoryCount {
     pub count: i64,
 }
 
+#[derive(Clone, Debug, Serialize)]
+pub struct DiskCount {
+    pub model: String,
+    pub size: String,
+    pub count: i64,
+}
+
 #[get("/")]
 pub fn index() -> Template {
     Template::render("hardware", context! {})
@@ -57,8 +64,28 @@ pub fn graphics_cards(database: &State<Database>) -> Template {
 
 #[get("/disks")]
 pub fn disks(database: &State<Database>) -> Template {
-    let disks = database.get_disks_count().unwrap_or(vec![]);
-    Template::render("hardware/disks", context! { disks })
+    let disks = database.get_disks_count();
+    if let Ok(disks) = disks {
+        let disks: Vec<DiskCount> = disks
+            .into_iter()
+            .map(|d| DiskCount {
+                model: d.model,
+                size: d
+                    .size
+                    .as_ref()
+                    .map(|size| {
+                        size.to_f64()
+                            .map(|size| display_util::format_filesize_byte_iec(size, 0))
+                            .unwrap_or_default()
+                    })
+                    .unwrap_or_default(),
+                count: d.count,
+            })
+            .collect();
+        Template::render("hardware/disks", context! { disks })
+    } else {
+        Template::render("hardware/disks", context! {})
+    }
 }
 
 #[get("/models")]
