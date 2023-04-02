@@ -37,10 +37,13 @@ async fn main() -> Result<(), rocket::Error> {
                 hardware::memory,
                 hardware::memory_clients,
                 hardware::graphics_cards,
-                hardware::graphics_cards_clients,
+                hardware::graphics_card_clients,
                 hardware::disks,
+                hardware::disk_clients,
                 hardware::models,
-                hardware::network_adapters
+                hardware::model_clients,
+                hardware::network_adapters,
+                hardware::network_adapter_clients,
             ],
         )
         .mount(

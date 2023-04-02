@@ -15,7 +15,7 @@
         {{#each network_adapters}}
             <tr>
                 <td>{{this.name}}</td>
-                <td>{{this.count}}</td>
+                <td><a href="/hardware/network_adapters/{{this.url_name}}">{{this.count}}</a></td>
             </tr>
         {{/each}}
         </tbody>

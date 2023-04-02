@@ -666,6 +666,22 @@ impl Database {
             .load::<DiskCount>(&mut conn)?)
     }
 
+    pub fn get_disk_clients(&self, model: &String, size: u64) -> Result<Vec<(Client, OsInfo)>> {
+        let mut conn = self.pool.get()?;
+        Ok(client::table
+            .filter(
+                client::id.eq_any(
+                    disks::table
+                        .select(disks::client_id)
+                        .filter(disks::model.eq(model))
+                        .filter(disks::size.eq(BigDecimal::from(size))),
+                ),
+            )
+            .inner_join(os_info::table)
+            .order_by(os_info::computer_name)
+            .load::<(Client, OsInfo)>(&mut conn)?)
+    }
+
     pub fn get_client_disks(&self, uuid: Uuid) -> Result<Vec<Disk>> {
         let mut conn = self.pool.get()?;
         Ok(disks::table
@@ -683,12 +699,28 @@ impl Database {
         Ok(computer_model::table
             .group_by((computer_model::model_family, computer_model::manufacturer))
             .select((
-                computer_model::model_family,
                 computer_model::manufacturer,
+                computer_model::model_family,
                 count_star(),
             ))
             .order_by((computer_model::manufacturer, computer_model::model_family))
             .load::<ComputerModelCount>(&mut conn)?)
+    }
+
+    pub fn get_computer_model_clients(&self, model: &String, manufacturer: &String) -> Result<Vec<(Client, OsInfo)>> {
+        let mut conn = self.pool.get()?;
+        Ok(client::table
+            .filter(
+                client::id.eq_any(
+                    computer_model::table
+                        .select(computer_model::client_id)
+                        .filter(computer_model::model_family.eq(model))
+                        .filter(computer_model::manufacturer.eq(manufacturer)),
+                ),
+            )
+            .inner_join(os_info::table)
+            .order_by(os_info::computer_name)
+            .load::<(Client, OsInfo)>(&mut conn)?)
     }
 
     pub fn get_client_computer_model(&self, uuid: Uuid) -> Result<Vec<ComputerModel>> {
@@ -722,6 +754,21 @@ impl Database {
             .select((network_adapter::name, count_star()))
             .order_by(network_adapter::name)
             .load::<NetworkAdapterCount>(&mut conn)?)
+    }
+
+    pub fn get_network_adapter_clients(&self, name: &String) -> Result<Vec<(Client, OsInfo)>> {
+        let mut conn = self.pool.get()?;
+        Ok(client::table
+            .filter(
+                client::id.eq_any(
+                    network_adapter::table
+                        .select(network_adapter::client_id)
+                        .filter(network_adapter::name.eq(name)),
+                ),
+            )
+            .inner_join(os_info::table)
+            .order_by(os_info::computer_name)
+            .load::<(Client, OsInfo)>(&mut conn)?)
     }
 
     pub fn get_client_network_adapters(&self, uuid: Uuid) -> Result<Vec<NetworkAdapter>> {

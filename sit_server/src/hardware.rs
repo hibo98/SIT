@@ -35,7 +35,25 @@ pub struct GraphicsCardCount {
 #[derive(Clone, Debug, Serialize)]
 pub struct DiskCount {
     pub model: String,
+    pub url_model: String,
     pub size: String,
+    pub size_raw: u64,
+    pub count: i64,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct ComputerModelCount {
+    pub manufacturer: String,
+    pub url_manufacturer: String,
+    pub model_family: String,
+    pub url_model_family: String,
+    pub count: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct NetworkAdapterCount {
+    pub name: String,
+    pub url_name: String,
     pub count: i64,
 }
 
@@ -135,12 +153,9 @@ pub fn graphics_cards(database: &State<Database>) -> Template {
 }
 
 #[get("/graphics_cards/<card>")]
-pub fn graphics_cards_clients(database: &State<Database>, card: String) -> Template {
+pub fn graphics_card_clients(database: &State<Database>, card: String) -> Template {
     let clients = database.get_graphics_card_clients(&card).unwrap_or(vec![]);
-    Template::render(
-        "hardware/clients",
-        context! { clients, headline: card },
-    )
+    Template::render("hardware/clients", context! { clients, headline: card })
 }
 
 #[get("/disks")]
@@ -150,6 +165,7 @@ pub fn disks(database: &State<Database>) -> Template {
         let disks: Vec<DiskCount> = disks
             .into_iter()
             .map(|d| DiskCount {
+                url_model: urlencoding::encode(&d.model).into_owned(),
                 model: d.model,
                 size: d
                     .size
@@ -160,6 +176,11 @@ pub fn disks(database: &State<Database>) -> Template {
                             .unwrap_or_default()
                     })
                     .unwrap_or_default(),
+                size_raw: d
+                    .size
+                    .as_ref()
+                    .map(|size| size.to_u64().unwrap_or_default())
+                    .unwrap_or_default(),
                 count: d.count,
             })
             .collect();
@@ -169,14 +190,58 @@ pub fn disks(database: &State<Database>) -> Template {
     }
 }
 
+#[get("/disks/<model>/<size>")]
+pub fn disk_clients(database: &State<Database>, model: String, size: u64) -> Template {
+    let clients = database.get_disk_clients(&model, size).unwrap_or(vec![]);
+    Template::render("hardware/clients", context! { clients, headline: format!("{}, {}", model, display_util::format_filesize_byte(size as f64, 0)) })
+}
+
 #[get("/models")]
 pub fn models(database: &State<Database>) -> Template {
-    let computer_models = database.get_computer_models_count().unwrap_or(vec![]);
-    Template::render("hardware/models", context! { computer_models })
+    let computer_models = database.get_computer_models_count();
+    if let Ok(computer_models) = computer_models {
+        let computer_models: Vec<ComputerModelCount> = computer_models
+            .into_iter()
+            .map(|m| ComputerModelCount {
+                url_manufacturer: urlencoding::encode(&m.manufacturer).into_owned(),
+                url_model_family: urlencoding::encode(&m.model_family).into_owned(),
+                manufacturer: m.manufacturer,
+                model_family: m.model_family,
+                count: m.count,
+            })
+            .collect();
+        Template::render("hardware/models", context! { computer_models })
+    } else {
+        Template::render("hardware/models", context! {})
+    }
+}
+
+#[get("/models/<manufacturer>/<model>")]
+pub fn model_clients(database: &State<Database>, manufacturer: String, model: String) -> Template {
+    let clients = database.get_computer_model_clients(&model, &manufacturer).unwrap_or(vec![]);
+    Template::render("hardware/clients", context! { clients, headline: format!("{}, {}", manufacturer, model) })
 }
 
 #[get("/network_adapters")]
 pub fn network_adapters(database: &State<Database>) -> Template {
-    let network_adapters = database.get_network_adapters_count().unwrap_or(vec![]);
-    Template::render("hardware/network_adapters", context! { network_adapters })
+    let network_adapters = database.get_network_adapters_count();
+    if let Ok(network_adapters) = network_adapters {
+        let network_adapters: Vec<NetworkAdapterCount> = network_adapters
+            .into_iter()
+            .map(|na| NetworkAdapterCount {
+                url_name: urlencoding::encode(&na.name).into_owned(),
+                name: na.name,
+                count: na.count,
+            })
+            .collect();
+        Template::render("hardware/network_adapters", context! { network_adapters })
+    } else {
+        Template::render("hardware/network_adapters", context! {})
+    }
+}
+
+#[get("/network_adapters/<name>")]
+pub fn network_adapter_clients(database: &State<Database>, name: String) -> Template {
+    let clients = database.get_network_adapter_clients(&name).unwrap_or(vec![]);
+    Template::render("hardware/clients", context! { clients, headline: name })
 }
