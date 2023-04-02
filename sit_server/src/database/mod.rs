@@ -422,6 +422,7 @@ impl Database {
             .filter(software_version::software_id.eq(software_id))
             .inner_join(software_version::table)
             .inner_join(client::table.inner_join(os_info::table))
+            .order_by((software_version::version, os_info::computer_name))
             .load::<(SoftwareList, SoftwareVersion, (Client, OsInfo))>(&mut conn)?)
     }
 
@@ -443,6 +444,7 @@ impl Database {
                 ),
             )
             .inner_join(os_info::table)
+            .order_by(os_info::computer_name)
             .load::<(Client, OsInfo)>(&mut conn)?)
     }
 
