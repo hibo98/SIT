@@ -579,8 +579,11 @@ impl Database {
                     memory_stick::table
                         .group_by(memory_stick::client_id)
                         .select(memory_stick::client_id)
-                        .having(sum(memory_stick::capacity).eq(BigDecimal::from(size)))
-                        .having(count(memory_stick::capacity).eq(stick_count)),
+                        .having(
+                            sum(memory_stick::capacity)
+                                .eq(BigDecimal::from(size))
+                                .and(count(memory_stick::capacity).eq(stick_count)),
+                        ),
                 ),
             )
             .inner_join(os_info::table)
