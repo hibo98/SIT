@@ -62,8 +62,10 @@ pub fn client(database: &State<Database>, uuid: Uuid) -> Template {
 
 #[get("/<uuid>/profiles")]
 pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
+    let client = database.get_client(&uuid);
+    let os_info = database.get_client_os_info(&uuid);
     let client_profiles = database.get_client_profiles(&uuid);
-    if let Ok(client_profiles) = client_profiles {
+    if let (Ok(client), Ok(os_info), Ok(client_profiles)) = (client, os_info, client_profiles) {
         let profiles: Vec<Profile> = client_profiles
             .into_iter()
             .map(|(up, u)| Profile {
@@ -94,88 +96,96 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
                     .unwrap_or_default(),
             })
             .collect();
-        Template::render("client_profiles", context! { profiles })
+        Template::render("clients/profiles", context! { profiles, client, os_info })
     } else {
-        Template::render("client_profiles", context! {})
+        Template::render("clients/profiles", context! {})
     }
 }
 
 #[get("/<uuid>/software")]
 pub fn software(database: &State<Database>, uuid: Uuid) -> Template {
-    let client_software = database.get_client_software(uuid);
-    if let Ok(client_software) = client_software {
-        Template::render("client_software", context! { software: client_software })
+    let client = database.get_client(&uuid);
+    let os_info = database.get_client_os_info(&uuid);
+    let software = database.get_client_software(uuid);
+    if let (Ok(client), Ok(os_info), Ok(software)) = (client, os_info, software) {
+        Template::render("clients/software", context! { software, client, os_info })
     } else {
-        Template::render("client_software", context! {})
+        Template::render("clients/software", context! {})
     }
 }
 
 #[get("/<uuid>/hardware")]
 pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
-    let processors = database.get_client_processors(uuid).unwrap_or(vec![]);
-    let memory: Vec<Memory> = database
-        .get_client_memory(uuid)
-        .unwrap_or(vec![])
-        .into_iter()
-        .map(|m| Memory {
-            capacity: m
-                .capacity
-                .as_ref()
-                .map(|capacity| {
-                    capacity
-                        .to_f64()
-                        .map(|capacity| display_util::format_filesize_byte_iec(capacity, 0))
-                        .unwrap_or_default()
-                })
-                .unwrap_or_default(),
-            stick_count: m.stick_count,
-        })
-        .collect();
-    let memory_sticks: Vec<MemoryStick> = database
-        .get_client_memory_sticks(uuid)
-        .unwrap_or(vec![])
-        .into_iter()
-        .map(|m| MemoryStick {
-            capacity: m
-                .capacity
-                .as_ref()
-                .map(|capacity| {
-                    capacity
-                        .to_f64()
-                        .map(|capacity| display_util::format_filesize_byte_iec(capacity, 0))
-                        .unwrap_or_default()
-                })
-                .unwrap_or_default(),
-            bank_label: m.bank_label,
-        })
-        .collect();
-    let graphics_cards = database.get_client_graphics_cards(uuid).unwrap_or(vec![]);
-    let disks: Vec<Disk> = database
-        .get_client_disks(uuid)
-        .unwrap_or(vec![])
-        .into_iter()
-        .map(|d| Disk {
-            model: d.model,
-            serial_number: d.serial_number,
-            size: d
-                .size
-                .as_ref()
-                .map(|size| {
-                    size.to_f64()
-                        .map(|size| display_util::format_filesize_byte(size, 0))
-                        .unwrap_or_default()
-                })
-                .unwrap_or_default(),
-            device_id: d.device_id,
-            status: d.status,
-            media_type: d.media_type,
-        })
-        .collect();
-    let computer_models = database.get_client_computer_model(uuid).unwrap_or(vec![]);
-    let bios_list = database.get_client_bios(uuid).unwrap_or(vec![]);
-    let network_adapters = database.get_client_network_adapters(uuid).unwrap_or(vec![]);
-    Template::render(
-        "client_hardware",
-        context! { processors, memory, memory_sticks, graphics_cards, disks, computer_models, bios_list, network_adapters },
-    )
+    let client = database.get_client(&uuid);
+    let os_info = database.get_client_os_info(&uuid);
+    if let (Ok(client), Ok(os_info)) = (client, os_info) {
+        let processors = database.get_client_processors(uuid).unwrap_or(vec![]);
+        let memory: Vec<Memory> = database
+            .get_client_memory(uuid)
+            .unwrap_or(vec![])
+            .into_iter()
+            .map(|m| Memory {
+                capacity: m
+                    .capacity
+                    .as_ref()
+                    .map(|capacity| {
+                        capacity
+                            .to_f64()
+                            .map(|capacity| display_util::format_filesize_byte_iec(capacity, 0))
+                            .unwrap_or_default()
+                    })
+                    .unwrap_or_default(),
+                stick_count: m.stick_count,
+            })
+            .collect();
+        let memory_sticks: Vec<MemoryStick> = database
+            .get_client_memory_sticks(uuid)
+            .unwrap_or(vec![])
+            .into_iter()
+            .map(|m| MemoryStick {
+                capacity: m
+                    .capacity
+                    .as_ref()
+                    .map(|capacity| {
+                        capacity
+                            .to_f64()
+                            .map(|capacity| display_util::format_filesize_byte_iec(capacity, 0))
+                            .unwrap_or_default()
+                    })
+                    .unwrap_or_default(),
+                bank_label: m.bank_label,
+            })
+            .collect();
+        let graphics_cards = database.get_client_graphics_cards(uuid).unwrap_or(vec![]);
+        let disks: Vec<Disk> = database
+            .get_client_disks(uuid)
+            .unwrap_or(vec![])
+            .into_iter()
+            .map(|d| Disk {
+                model: d.model,
+                serial_number: d.serial_number,
+                size: d
+                    .size
+                    .as_ref()
+                    .map(|size| {
+                        size.to_f64()
+                            .map(|size| display_util::format_filesize_byte(size, 0))
+                            .unwrap_or_default()
+                    })
+                    .unwrap_or_default(),
+                device_id: d.device_id,
+                status: d.status,
+                media_type: d.media_type,
+            })
+            .collect();
+        let computer_models = database.get_client_computer_model(uuid).unwrap_or(vec![]);
+        let bios_list = database.get_client_bios(uuid).unwrap_or(vec![]);
+        let network_adapters = database.get_client_network_adapters(uuid).unwrap_or(vec![]);
+        Template::render(
+            "clients/hardware",
+            context! { processors, memory, memory_sticks, graphics_cards, disks, computer_models, bios_list, network_adapters, client, os_info },
+        )
+    } else {
+        Template::render("clients/hardware", context! {})
+    }
 }

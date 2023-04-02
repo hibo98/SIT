@@ -36,7 +36,7 @@ a:hover {
 }
 
 #left-nav {
-    width: 13em;
+    width: 15em;
     border-right: 1px solid #222;
     overflow: auto;
 }
@@ -65,6 +65,23 @@ a:hover {
 
 #main-content.content-flex {
     display: flex;
+}
+
+#main-content .header-bar {
+    height: 2em;
+    display: flex;
+    align-items: center;
+}
+
+#main-content .header-bar span {
+    margin-left: 0.5em;
+}
+
+#main-content #page-content {
+    display: flex;
+    height: calc(100% - 2em - 1px);
+    overflow: auto;
+    border-top: 1px solid #222;
 }
 
 table,

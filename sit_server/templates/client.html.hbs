@@ -1,9 +1,8 @@
-{{> main-top title="Clients"}}
+{{> _layout_client-top title="Client" client=client os_info=os_info}}
 <div class="client-table">
     <h1>{{os_info.computer_name}}.{{os_info.domain}}</h1>
     <p>UUID: {{client.uuid}}</p>
     <p>OS: {{os_info.os}}</p>
     <p>OS-Version: {{os_info.os_version}}</p>
-    <p><a href="/clients/{{client.uuid}}/hardware">Hardware</a>, <a href="/clients/{{client.uuid}}/profiles">Profile</a>, <a href="/clients/{{client.uuid}}/software">Software</a></p>
 </div>
-{{> main-bottom}}
+{{> _layout_client-bottom}}

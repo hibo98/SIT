@@ -1,0 +1,10 @@
+{{> main-top title}}
+<div class="header-bar"><span>{{os_info.computer_name}}.{{os_info.domain}}</span></div>
+<div id="page-content">
+    <nav id="left-nav">
+        <a href="/clients/{{client.uuid}}">Übersicht</a>
+        <a href="/clients/{{client.uuid}}/hardware">Hardware</a>
+        <a href="/clients/{{client.uuid}}/profiles">Profile</a>
+        <a href="/clients/{{client.uuid}}/software">Software</a>
+    </nav>
+    <div id="sub-content">
