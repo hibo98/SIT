@@ -33,8 +33,11 @@ async fn main() -> Result<(), rocket::Error> {
             routes![
                 hardware::index,
                 hardware::processors,
+                hardware::processor_clients,
                 hardware::memory,
+                hardware::memory_clients,
                 hardware::graphics_cards,
+                hardware::graphics_cards_clients,
                 hardware::disks,
                 hardware::models,
                 hardware::network_adapters

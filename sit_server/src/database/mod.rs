@@ -536,6 +536,21 @@ impl Database {
             .load::<ProcessorCount>(&mut conn)?)
     }
 
+    pub fn get_processor_clients(&self, processor: &String) -> Result<Vec<(Client, OsInfo)>> {
+        let mut conn = self.pool.get()?;
+        Ok(client::table
+            .filter(
+                client::id.eq_any(
+                    processor::table
+                        .select(processor::client_id)
+                        .filter(processor::name.eq(processor)),
+                ),
+            )
+            .inner_join(os_info::table)
+            .order_by(os_info::computer_name)
+            .load::<(Client, OsInfo)>(&mut conn)?)
+    }
+
     pub fn get_client_processors(&self, uuid: Uuid) -> Result<Vec<Processor>> {
         let mut conn = self.pool.get()?;
         Ok(processor::table
@@ -554,6 +569,23 @@ impl Database {
             "SELECT capacity, sticks, COUNT(*) FROM memory GROUP BY capacity, sticks ORDER BY capacity, sticks;",
         )
         .load(&mut conn)?)
+    }
+
+    pub fn get_memory_clients(&self, size: u64, stick_count: i64) -> Result<Vec<(Client, OsInfo)>> {
+        let mut conn = self.pool.get()?;
+        Ok(client::table
+            .filter(
+                client::id.eq_any(
+                    memory_stick::table
+                        .group_by(memory_stick::client_id)
+                        .select(memory_stick::client_id)
+                        .having(sum(memory_stick::capacity).eq(BigDecimal::from(size)))
+                        .having(count(memory_stick::capacity).eq(stick_count)),
+                ),
+            )
+            .inner_join(os_info::table)
+            .order_by(os_info::computer_name)
+            .load::<(Client, OsInfo)>(&mut conn)?)
     }
 
     pub fn get_client_memory(&self, uuid: Uuid) -> Result<Vec<Memory>> {
@@ -593,6 +625,21 @@ impl Database {
             .select((graphics_card::name, count_star()))
             .order_by(graphics_card::name)
             .load::<GraphicsCardCount>(&mut conn)?)
+    }
+
+    pub fn get_graphics_card_clients(&self, card: &String) -> Result<Vec<(Client, OsInfo)>> {
+        let mut conn = self.pool.get()?;
+        Ok(client::table
+            .filter(
+                client::id.eq_any(
+                    graphics_card::table
+                        .select(graphics_card::client_id)
+                        .filter(graphics_card::name.eq(card)),
+                ),
+            )
+            .inner_join(os_info::table)
+            .order_by(os_info::computer_name)
+            .load::<(Client, OsInfo)>(&mut conn)?)
     }
 
     pub fn get_client_graphics_cards(&self, uuid: Uuid) -> Result<Vec<GraphicsCard>> {

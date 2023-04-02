@@ -1,0 +1,19 @@
+{{> _layout_hardware-top title="Hardware - Clients"}}
+<div class="hardware-table">
+    <h1>{{headline}}</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Computer</th>
+            </tr>
+        </thead>
+        <tbody>
+        {{#each clients}}
+            <tr>
+                <td><a href="/clients/{{this.[0].uuid}}">{{this.[1].computer_name}}.{{this.[1].domain}}</a></td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_hardware-bottom}}
