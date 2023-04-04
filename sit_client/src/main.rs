@@ -149,6 +149,8 @@ fn main() -> Result<()> {
                 println!("{:#?}", OsInfo::get_os_info(&wmi_con));
             } else if func == *"user-profiles" {
                 println!("{:#?}", OsInfo::get_user_profiles(&wmi_con));
+            } else if func == *"windows-key" {
+                println!("{:#?}", OsInfo::get_windows_key());
             }
         }
         _ => unreachable!(),
