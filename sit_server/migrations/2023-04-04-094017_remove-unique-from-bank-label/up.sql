@@ -1,0 +1,1 @@
+ALTER TABLE memory_stick DROP CONSTRAINT IF EXISTS unique_bank_label; 

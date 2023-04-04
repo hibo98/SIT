@@ -1,0 +1,1 @@
+ALTER TABLE memory_stick ADD UNIQUE (bank_label); 
