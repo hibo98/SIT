@@ -7,7 +7,7 @@ use sit_lib::os::{ProfileInfo, UserProfiles, WinOsInfo};
 use std::ffi::CString;
 use walkdir::WalkDir;
 use windows::core::{PCSTR, PCWSTR, PWSTR};
-use windows::Win32::Foundation::{GetLastError, PSID};
+use windows::Win32::Foundation::{GetLastError, PSID, HLOCAL};
 use windows::Win32::Security::Authorization::ConvertStringSidToSidA;
 use windows::Win32::Security::{LookupAccountSidW, SID_NAME_USE};
 use windows::Win32::System::Memory::LocalFree;
@@ -60,7 +60,7 @@ struct WinPointer {
 impl Drop for WinPointer {
     fn drop(&mut self) {
         unsafe {
-            LocalFree(self.inner.0 as isize);
+            let _ = LocalFree(HLOCAL(self.inner.0 as isize));
         }
     }
 }
