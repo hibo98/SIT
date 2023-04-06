@@ -28,4 +28,11 @@ pub struct ProfileInfo {
     pub last_upload_time: Option<DateTime<FixedOffset>>,
     pub status: u32,
     pub size: Option<u64>,
+    pub path_size: Option<Vec<PathInfo>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PathInfo {
+    pub path: String,
+    pub size: u64,
 }

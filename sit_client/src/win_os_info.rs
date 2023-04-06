@@ -3,11 +3,11 @@
 
 use anyhow::{bail, Result};
 use serde::Deserialize;
-use sit_lib::os::{ProfileInfo, UserProfiles, WinOsInfo};
+use sit_lib::os::{PathInfo, ProfileInfo, UserProfiles, WinOsInfo};
 use std::ffi::CString;
 use walkdir::WalkDir;
 use windows::core::{PCSTR, PCWSTR, PWSTR};
-use windows::Win32::Foundation::{GetLastError, PSID, HLOCAL};
+use windows::Win32::Foundation::{GetLastError, HLOCAL, PSID};
 use windows::Win32::Security::Authorization::ConvertStringSidToSidA;
 use windows::Win32::Security::{LookupAccountSidW, SID_NAME_USE};
 use windows::Win32::System::Memory::LocalFree;
@@ -106,6 +106,11 @@ impl OsInfo {
                 } else {
                     OsInfo::get_dir_size(&up.LocalPath).ok()
                 },
+                path_size: if up.Loaded {
+                    None
+                } else {
+                    OsInfo::get_profile_dir_path_infos(&up.LocalPath).ok()
+                },
             })
             .collect();
         Ok(UserProfiles { profiles: vec })
@@ -142,7 +147,7 @@ impl OsInfo {
 
         let key_part1 = &key_output.clone()[1..(1 + last) as usize];
         let key_part2 = &key_output.clone()[1..(key_output.len())];
-        
+
         if last == 0 {
             key_output = "N".to_owned() + key_part2;
         } else {
@@ -206,6 +211,17 @@ impl OsInfo {
                 domain_name: domain_name_pwstr.to_string()?,
             })
         }
+    }
+
+    fn get_profile_dir_path_infos(path: &String) -> Result<Vec<PathInfo>> {
+        Ok(vec!["AppData\\Roaming"]
+            .into_iter()
+            .map(|sub_path| {
+                let path = path.to_owned() + "\\" + sub_path;
+                let size = OsInfo::get_dir_size(&path).unwrap_or_default();
+                PathInfo { path, size }
+            })
+            .collect())
     }
 
     fn get_dir_size(path: &String) -> Result<u64> {
