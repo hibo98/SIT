@@ -9,17 +9,17 @@ pub struct Software;
 impl Software {
     pub fn get_software_list() -> SoftwareLibrary {
         let mut map = HashMap::new();
-        Self::open_sub_key(
+        Self::extract_software_from_sub_key(
             HKEY_LOCAL_MACHINE,
             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
             &mut map,
         );
-        Self::open_sub_key(
+        Self::extract_software_from_sub_key(
             HKEY_LOCAL_MACHINE,
             "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
             &mut map,
         );
-        Self::open_sub_key(
+        Self::extract_software_from_sub_key(
             HKEY_CURRENT_USER,
             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
             &mut map,
@@ -29,7 +29,11 @@ impl Software {
         }
     }
 
-    fn open_sub_key(hkey: HKEY, path: &str, map: &mut HashMap<String, SoftwareEntry>) {
+    fn extract_software_from_sub_key(
+        hkey: HKEY,
+        path: &str,
+        map: &mut HashMap<String, SoftwareEntry>,
+    ) {
         let key = RegKey::predef(hkey).open_subkey(path);
         if let Ok(key) = key {
             Self::extract_software(key, map);

@@ -140,7 +140,10 @@ fn main() -> Result<()> {
         Some(("debug", sub_matches)) => {
             let com_con = COMLibrary::new()?;
             let wmi_con = WMIConnection::new(com_con)?;
-            let func = sub_matches.get_one::<String>("function").cloned().unwrap_or_default();
+            let func = sub_matches
+                .get_one::<String>("function")
+                .cloned()
+                .unwrap_or_default();
             if func == *"hardware-info" {
                 println!("{:#?}", Hardware::get_hardware_info(&wmi_con));
             } else if func == *"software-list" {

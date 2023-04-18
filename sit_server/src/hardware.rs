@@ -193,7 +193,10 @@ pub fn disks(database: &State<Database>) -> Template {
 #[get("/disks/<model>/<size>")]
 pub fn disk_clients(database: &State<Database>, model: String, size: u64) -> Template {
     let clients = database.get_disk_clients(&model, size).unwrap_or(vec![]);
-    Template::render("hardware/clients", context! { clients, headline: format!("{}, {}", model, display_util::format_filesize_byte(size as f64, 0)) })
+    Template::render(
+        "hardware/clients",
+        context! { clients, headline: format!("{}, {}", model, display_util::format_filesize_byte(size as f64, 0)) },
+    )
 }
 
 #[get("/models")]
@@ -218,8 +221,13 @@ pub fn models(database: &State<Database>) -> Template {
 
 #[get("/models/<manufacturer>/<model>")]
 pub fn model_clients(database: &State<Database>, manufacturer: String, model: String) -> Template {
-    let clients = database.get_computer_model_clients(&model, &manufacturer).unwrap_or(vec![]);
-    Template::render("hardware/clients", context! { clients, headline: format!("{}, {}", manufacturer, model) })
+    let clients = database
+        .get_computer_model_clients(&model, &manufacturer)
+        .unwrap_or(vec![]);
+    Template::render(
+        "hardware/clients",
+        context! { clients, headline: format!("{}, {}", manufacturer, model) },
+    )
 }
 
 #[get("/network_adapters")]
@@ -242,6 +250,8 @@ pub fn network_adapters(database: &State<Database>) -> Template {
 
 #[get("/network_adapters/<name>")]
 pub fn network_adapter_clients(database: &State<Database>, name: String) -> Template {
-    let clients = database.get_network_adapter_clients(&name).unwrap_or(vec![]);
+    let clients = database
+        .get_network_adapter_clients(&name)
+        .unwrap_or(vec![]);
     Template::render("hardware/clients", context! { clients, headline: name })
 }

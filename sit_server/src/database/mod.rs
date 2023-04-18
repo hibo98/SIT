@@ -709,7 +709,11 @@ impl Database {
             .load::<ComputerModelCount>(&mut conn)?)
     }
 
-    pub fn get_computer_model_clients(&self, model: &String, manufacturer: &String) -> Result<Vec<(Client, OsInfo)>> {
+    pub fn get_computer_model_clients(
+        &self,
+        model: &String,
+        manufacturer: &String,
+    ) -> Result<Vec<(Client, OsInfo)>> {
         let mut conn = self.pool.get()?;
         Ok(client::table
             .filter(
