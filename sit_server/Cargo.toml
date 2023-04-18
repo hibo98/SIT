@@ -18,4 +18,4 @@ sit_lib = { path = "../sit_lib" }
 anyhow = "1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 bigdecimal = { version = "0.3", features = ["serde"] }
-urlencoding = "2.1.2"
+urlencoding = "2"
