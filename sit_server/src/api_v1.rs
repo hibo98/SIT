@@ -7,6 +7,7 @@ use sit_lib::os::UserProfiles;
 use sit_lib::os::WinOsInfo;
 use sit_lib::server::Register;
 use sit_lib::software::SoftwareLibrary;
+use sit_lib::system_status::VolumeList;
 use uuid::Uuid;
 
 use crate::database::Database;
@@ -98,6 +99,21 @@ pub async fn profiles(
 ) -> status::Custom<()> {
     match database.get_client(&uuid) {
         Ok(client) => match database.update_profiles(client.id, input.0) {
+            Ok(_) => status::Custom(Status::Ok, ()),
+            Err(_) => status::Custom(Status::InternalServerError, ()),
+        },
+        Err(_) => status::Custom(Status::InternalServerError, ()),
+    }
+}
+
+#[post("/status/<uuid>/volumes", data = "<input>")]
+pub async fn status_volumes(
+    database: &State<Database>,
+    uuid: Uuid,
+    input: Json<VolumeList>,
+) -> status::Custom<()> {
+    match database.get_client(&uuid) {
+        Ok(client) => match database.update_status_volumes(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
             Err(_) => status::Custom(Status::InternalServerError, ()),
         },

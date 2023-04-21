@@ -1,0 +1,33 @@
+{{> _layout_client-top title="Client - Status" client=client os_info=os_info}}
+<h1>Zustand</h1>
+<h2>Laufwerke</h2>
+<div class="filters">
+
+</div>
+<table>
+    <thead>
+    <tr>
+        <th>Laufwerk</th>
+        <th>Bezeichnung</th>
+        <th>Dateisystem</th>
+        <th>Kapazität</th>
+        <th>Frei</th>
+        <th>Belegt</th>
+        <th>%-Belegung</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each volumes}}
+        <tr>
+            <td>{{this.drive_letter}}</td>
+            <td>{{this.label}}</td>
+            <td>{{this.file_system}}</td>
+            <td>{{this.capacity}}</td>
+            <td>{{this.free_space}}</td>
+            <td>{{this.occupied_space}}</td>
+            <td>{{this.occupied_percentage}}</td>
+        </tr>
+    {{/each}}
+    </tbody>
+</table>
+{{> _layout_client-bottom}}

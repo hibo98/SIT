@@ -3,6 +3,7 @@ use sit_lib::hardware::HardwareInfo;
 use sit_lib::os::{UserProfiles, WinOsInfo};
 use sit_lib::server::Register;
 use sit_lib::software::SoftwareLibrary;
+use sit_lib::system_status::VolumeList;
 
 use crate::Config;
 
@@ -72,6 +73,18 @@ impl Server {
                 Config::get_uuid()?.unwrap()
             ))
             .json(profiles)
+            .send();
+        Ok(())
+    }
+
+    pub fn status_volumes(volumes: &VolumeList) -> Result<()> {
+        let _request = reqwest::blocking::Client::new()
+            .post(format!(
+                "{}/api/v1/status/{}/volumes",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
+            .json(volumes)
             .send();
         Ok(())
     }

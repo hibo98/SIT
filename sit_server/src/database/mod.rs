@@ -14,6 +14,7 @@ use dotenv::dotenv;
 use sit_lib::hardware::HardwareInfo;
 use sit_lib::os::{UserProfiles, WinOsInfo};
 use sit_lib::software::SoftwareLibrary;
+use sit_lib::system_status::VolumeList;
 use uuid::Uuid;
 
 use crate::database::model::*;
@@ -308,6 +309,29 @@ impl Database {
                         ))
                         .execute(c)?;
                 }
+            }
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn update_status_volumes(&self, client_id: i32, volumes: VolumeList) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        conn.transaction::<(), diesel::result::Error, _>(|c| {
+            diesel::delete(volume_status::table)
+                .filter(volume_status::client_id.eq(client_id))
+                .execute(c)?;
+            for v in volumes.volumes {
+                diesel::insert_into(volume_status::table)
+                    .values(NewVolumeStatus {
+                        client_id: &client_id,
+                        drive_letter: &v.drive_letter,
+                        label: v.label.as_ref(),
+                        file_system: &v.file_system,
+                        capacity: BigDecimal::from(v.capacity),
+                        free_space: BigDecimal::from(v.free_space),
+                    })
+                    .execute(c)?;
             }
             Ok(())
         })?;
@@ -787,5 +811,18 @@ impl Database {
                     .single_value()),
             )
             .load::<NetworkAdapter>(&mut conn)?)
+    }
+
+    pub fn get_client_volume_status(&self, uuid: Uuid) -> Result<Vec<VolumeStatus>> {
+        let mut conn = self.pool.get()?;
+        Ok(volume_status::table
+            .filter(
+                volume_status::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .order_by(volume_status::drive_letter)
+            .load::<VolumeStatus>(&mut conn)?)
     }
 }

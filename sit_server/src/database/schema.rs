@@ -140,6 +140,18 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    volume_status (id) {
+        id -> Int4,
+        client_id -> Int4,
+        drive_letter -> Text,
+        label -> Nullable<Text>,
+        file_system -> Text,
+        capacity -> Numeric,
+        free_space -> Numeric,
+    }
+}
+
 diesel::joinable!(bios -> client (client_id));
 diesel::joinable!(computer_model -> client (client_id));
 diesel::joinable!(disks -> client (client_id));
@@ -154,6 +166,7 @@ diesel::joinable!(software_list -> software_version (software_id));
 diesel::joinable!(software_version -> software_info (software_id));
 diesel::joinable!(userprofile -> client (client_id));
 diesel::joinable!(userprofile -> user (user_id));
+diesel::joinable!(volume_status -> client (client_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     bios,
@@ -171,4 +184,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     software_version,
     user,
     userprofile,
+    volume_status,
 );

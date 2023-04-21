@@ -101,15 +101,10 @@ pub fn memory(database: &State<Database>) -> Template {
         let memorys: Vec<MemoryCount> = memorys
             .into_iter()
             .map(|m| MemoryCount {
-                capacity: m
-                    .capacity
-                    .as_ref()
-                    .map(|size| {
-                        size.to_f64()
-                            .map(|size| display_util::format_filesize_byte_iec(size, 0))
-                            .unwrap_or_default()
-                    })
-                    .unwrap_or_default(),
+                capacity: display_util::format_option_big_decimal(
+                    &m.capacity,
+                    display_util::format_filesize_byte_iec,
+                ),
                 capacity_raw: m
                     .capacity
                     .as_ref()
@@ -167,15 +162,10 @@ pub fn disks(database: &State<Database>) -> Template {
             .map(|d| DiskCount {
                 url_model: urlencoding::encode(&d.model).into_owned(),
                 model: d.model,
-                size: d
-                    .size
-                    .as_ref()
-                    .map(|size| {
-                        size.to_f64()
-                            .map(|size| display_util::format_filesize_byte(size, 0))
-                            .unwrap_or_default()
-                    })
-                    .unwrap_or_default(),
+                size: display_util::format_option_big_decimal(
+                    &d.size,
+                    display_util::format_filesize_byte,
+                ),
                 size_raw: d
                     .size
                     .as_ref()

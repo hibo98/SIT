@@ -1,4 +1,3 @@
-use bigdecimal::ToPrimitive;
 use rocket::State;
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
@@ -43,6 +42,17 @@ pub struct Disk {
     pub media_type: String,
 }
 
+#[derive(Clone, Debug, Serialize)]
+pub struct VolumeStatus {
+    pub drive_letter: String,
+    pub label: Option<String>,
+    pub file_system: String,
+    pub capacity: String,
+    pub free_space: String,
+    pub occupied_space: String,
+    pub occupied_percentage: String,
+}
+
 #[get("/")]
 pub fn index(database: &State<Database>) -> Template {
     let client_info = database.get_clients_with_os_info().unwrap_or(vec![]);
@@ -85,15 +95,10 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
                     .map(display_util::format_date_time)
                     .unwrap_or_default(),
                 status: ms_magic::resolve_profile_status(up.status),
-                size: up
-                    .size
-                    .as_ref()
-                    .map(|size| {
-                        size.to_f64()
-                            .map(|size| display_util::format_filesize_byte(size, 0))
-                            .unwrap_or_default()
-                    })
-                    .unwrap_or_default(),
+                size: display_util::format_option_big_decimal(
+                    &up.size,
+                    display_util::format_filesize_byte,
+                ),
             })
             .collect();
         Template::render("clients/profiles", context! { profiles, client, os_info })
@@ -125,16 +130,10 @@ pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
             .unwrap_or(vec![])
             .into_iter()
             .map(|m| Memory {
-                capacity: m
-                    .capacity
-                    .as_ref()
-                    .map(|capacity| {
-                        capacity
-                            .to_f64()
-                            .map(|capacity| display_util::format_filesize_byte_iec(capacity, 0))
-                            .unwrap_or_default()
-                    })
-                    .unwrap_or_default(),
+                capacity: display_util::format_option_big_decimal(
+                    &m.capacity,
+                    display_util::format_filesize_byte_iec,
+                ),
                 stick_count: m.stick_count,
             })
             .collect();
@@ -143,16 +142,10 @@ pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
             .unwrap_or(vec![])
             .into_iter()
             .map(|m| MemoryStick {
-                capacity: m
-                    .capacity
-                    .as_ref()
-                    .map(|capacity| {
-                        capacity
-                            .to_f64()
-                            .map(|capacity| display_util::format_filesize_byte_iec(capacity, 0))
-                            .unwrap_or_default()
-                    })
-                    .unwrap_or_default(),
+                capacity: display_util::format_option_big_decimal(
+                    &m.capacity,
+                    display_util::format_filesize_byte_iec,
+                ),
                 bank_label: m.bank_label,
             })
             .collect();
@@ -164,15 +157,10 @@ pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
             .map(|d| Disk {
                 model: d.model,
                 serial_number: d.serial_number,
-                size: d
-                    .size
-                    .as_ref()
-                    .map(|size| {
-                        size.to_f64()
-                            .map(|size| display_util::format_filesize_byte(size, 0))
-                            .unwrap_or_default()
-                    })
-                    .unwrap_or_default(),
+                size: display_util::format_option_big_decimal(
+                    &d.size,
+                    display_util::format_filesize_byte,
+                ),
                 device_id: d.device_id,
                 status: d.status,
                 media_type: d.media_type,
@@ -187,5 +175,42 @@ pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
         )
     } else {
         Template::render("clients/hardware", context! {})
+    }
+}
+
+#[get("/<uuid>/status")]
+pub fn status(database: &State<Database>, uuid: Uuid) -> Template {
+    let client = database.get_client(&uuid);
+    let os_info = database.get_client_os_info(&uuid);
+    if let (Ok(client), Ok(os_info)) = (client, os_info) {
+        let volumes: Vec<VolumeStatus> = database
+            .get_client_volume_status(uuid)
+            .unwrap_or(vec![])
+            .into_iter()
+            .map(|v| VolumeStatus {
+                drive_letter: v.drive_letter,
+                label: v.label,
+                file_system: v.file_system,
+                capacity: display_util::format_big_decimal(
+                    &v.capacity,
+                    display_util::format_filesize_byte,
+                ),
+                free_space: display_util::format_big_decimal(
+                    &v.free_space,
+                    display_util::format_filesize_byte,
+                ),
+                occupied_space: display_util::format_big_decimal(
+                    &(&v.capacity - &v.free_space),
+                    display_util::format_filesize_byte,
+                ),
+                occupied_percentage: display_util::format_bd_percentage(
+                    &(&v.capacity - &v.free_space),
+                    &v.capacity,
+                ),
+            })
+            .collect();
+        Template::render("clients/status", context! { volumes, client, os_info })
+    } else {
+        Template::render("clients/status", context! {})
     }
 }

@@ -17,6 +17,7 @@ use crate::config::Config;
 use crate::hardware::Hardware;
 use crate::server::Server;
 use crate::software::Software;
+use crate::system_status::SystemStatus;
 use crate::win_os_info::OsInfo;
 
 mod config;
@@ -24,6 +25,7 @@ mod hardware;
 mod server;
 mod service_mgmt;
 mod software;
+mod system_status;
 mod win_os_info;
 
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
@@ -38,19 +40,20 @@ fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
             Server::os(&os_info).unwrap();
         }
     }));
-    scheduler.add(Job::new("0 1/5 * * * * *".parse().unwrap(), || {
+    scheduler.add(Job::new("0 0/5 * * * * *".parse().unwrap(), || {
         let com_con = COMLibrary::without_security().unwrap();
         let wmi_con = WMIConnection::new(com_con).unwrap();
-        let hardware_info = Hardware::get_hardware_info(&wmi_con);
-        if let Ok(hardware_info) = hardware_info {
+        if let Ok(hardware_info) = Hardware::get_hardware_info(&wmi_con) {
             Server::hardware(&hardware_info).unwrap();
         }
-        let profiles = OsInfo::get_user_profiles(&wmi_con);
-        if let Ok(profiles) = profiles {
+        if let Ok(profiles) = OsInfo::get_user_profiles(&wmi_con) {
             Server::profiles(&profiles).unwrap();
         }
         let software_lib = Software::get_software_list();
         Server::software(&software_lib).unwrap();
+        if let Ok(volumes) = SystemStatus::get_volume_status(&wmi_con) {
+            Server::status_volumes(&volumes).unwrap();
+        }
     }));
 
     if let Some(shutdown_rx) = shutdown_rx {
@@ -154,6 +157,8 @@ fn main() -> Result<()> {
                 println!("{:#?}", OsInfo::get_user_profiles(&wmi_con));
             } else if func == *"windows-key" {
                 println!("{:#?}", OsInfo::get_windows_key());
+            } else if func == *"system-status" {
+                println!("{:#?}", SystemStatus::get_volume_status(&wmi_con));
             }
         }
         _ => unreachable!(),

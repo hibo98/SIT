@@ -1,4 +1,3 @@
-use bigdecimal::ToPrimitive;
 use rocket::State;
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
@@ -76,15 +75,10 @@ pub fn profile(database: &State<Database>, sid: String) -> Template {
                     .map(display_util::format_date_time)
                     .unwrap_or_default(),
                 status: ms_magic::resolve_profile_status(up.status),
-                size: up
-                    .size
-                    .as_ref()
-                    .map(|size| {
-                        size.to_f64()
-                            .map(|size| display_util::format_filesize_byte(size, 0))
-                            .unwrap_or_default()
-                    })
-                    .unwrap_or_default(),
+                size: display_util::format_option_big_decimal(
+                    &up.size,
+                    display_util::format_filesize_byte,
+                ),
             })
             .collect();
         Template::render("profile", context! { profile })

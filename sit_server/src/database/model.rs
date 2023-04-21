@@ -346,3 +346,25 @@ pub struct NewBios<'a> {
     pub manufacturer: &'a String,
     pub version: &'a String,
 }
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct VolumeStatus {
+    pub id: i32,
+    pub client_id: i32,
+    pub drive_letter: String,
+    pub label: Option<String>,
+    pub file_system: String,
+    pub capacity: BigDecimal,
+    pub free_space: BigDecimal,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = volume_status)]
+pub struct NewVolumeStatus<'a> {
+    pub client_id: &'a i32,
+    pub drive_letter: &'a String,
+    pub label: Option<&'a String>,
+    pub file_system: &'a String,
+    pub capacity: BigDecimal,
+    pub free_space: BigDecimal,
+}
