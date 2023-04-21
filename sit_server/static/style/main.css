@@ -28,6 +28,7 @@ a:hover {
 
 #top-logo img {
     height: 30px;
+    display: inherit;
 }
 
 #main {
