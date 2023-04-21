@@ -368,3 +368,19 @@ pub struct NewVolumeStatus<'a> {
     pub capacity: BigDecimal,
     pub free_space: BigDecimal,
 }
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct LicenseKey {
+    pub id: i32,
+    pub client_id: i32,
+    pub name: String,
+    pub key: String,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = license_key)]
+pub struct NewLicenseKey<'a> {
+    pub client_id: &'a i32,
+    pub name: &'a String,
+    pub key: &'a String,
+}

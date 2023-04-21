@@ -64,6 +64,7 @@ async fn main() -> Result<(), rocket::Error> {
                 clients::software,
                 clients::hardware,
                 clients::status,
+                clients::licenses,
             ],
         )
         .mount("/profile/", routes![profile::index, profile::profile])
@@ -76,6 +77,7 @@ async fn main() -> Result<(), rocket::Error> {
                 api_v1::software,
                 api_v1::profiles,
                 api_v1::status_volumes,
+                api_v1::licenses,
             ],
         )
         .mount("/static", FileServer::from("static"))

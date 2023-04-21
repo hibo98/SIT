@@ -46,6 +46,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    license_key (id) {
+        id -> Int4,
+        client_id -> Int4,
+        name -> Text,
+        key -> Text,
+    }
+}
+
+diesel::table! {
     memory_stick (id) {
         id -> Int4,
         client_id -> Int4,
@@ -156,6 +165,7 @@ diesel::joinable!(bios -> client (client_id));
 diesel::joinable!(computer_model -> client (client_id));
 diesel::joinable!(disks -> client (client_id));
 diesel::joinable!(graphics_card -> client (client_id));
+diesel::joinable!(license_key -> client (client_id));
 diesel::joinable!(memory_stick -> client (client_id));
 diesel::joinable!(network_adapter -> client (client_id));
 diesel::joinable!(network_adapter_ip -> network_adapter (adapter_id));
@@ -174,6 +184,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     computer_model,
     disks,
     graphics_card,
+    license_key,
     memory_stick,
     network_adapter,
     network_adapter_ip,

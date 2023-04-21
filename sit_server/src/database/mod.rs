@@ -12,6 +12,7 @@ use diesel::sql_types::{BigInt, Nullable};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dotenv::dotenv;
 use sit_lib::hardware::HardwareInfo;
+use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::{UserProfiles, WinOsInfo};
 use sit_lib::software::SoftwareLibrary;
 use sit_lib::system_status::VolumeList;
@@ -335,6 +336,62 @@ impl Database {
             }
             Ok(())
         })?;
+        Ok(())
+    }
+
+    pub fn update_license_keys(&self, client_id: i32, license_bundes: LicenseBundle) -> Result<()> {
+        self.pool
+            .get()?
+            .transaction::<(), diesel::result::Error, _>(|conn| {
+                let existing: Vec<LicenseKey> = license_key::table
+                    .filter(license_key::client_id.eq(client_id))
+                    .load::<LicenseKey>(conn)?;
+                let mut to_add: Vec<NewLicenseKey> = vec![];
+                let mut to_update: Vec<(String, String)> = vec![];
+                let mut to_delete: Vec<i32> = vec![];
+
+                for l in &license_bundes.licenses {
+                    if !existing.iter().any(|i| i.name.eq(&l.name)) {
+                        to_add.push(NewLicenseKey {
+                            client_id: &client_id,
+                            name: &l.name,
+                            key: &l.key,
+                        });
+                    } else if !existing
+                        .iter()
+                        .any(|i| i.name.eq(&l.name) && i.key.eq(&l.key))
+                    {
+                        to_update.push((l.name.clone(), l.key.clone()));
+                    }
+                }
+
+                for lk in existing {
+                    if !&license_bundes.licenses.iter().any(|i| i.name.eq(&lk.name)) {
+                        to_delete.push(lk.id);
+                    }
+                }
+
+                if !to_add.is_empty() {
+                    diesel::insert_into(license_key::table)
+                        .values(to_add)
+                        .execute(conn)?;
+                }
+
+                if !to_delete.is_empty() {
+                    diesel::delete(license_key::table)
+                        .filter(license_key::id.eq_any(to_delete))
+                        .execute(conn)?;
+                }
+
+                for (name, key) in to_update {
+                    diesel::update(license_key::table)
+                        .set(license_key::key.eq(key))
+                        .filter(license_key::client_id.eq(client_id))
+                        .filter(license_key::name.eq(name))
+                        .execute(conn)?;
+                }
+                Ok(())
+            })?;
         Ok(())
     }
 
@@ -811,6 +868,19 @@ impl Database {
                     .single_value()),
             )
             .load::<NetworkAdapter>(&mut conn)?)
+    }
+
+    pub fn get_client_licenses(&self, uuid: Uuid) -> Result<Vec<LicenseKey>> {
+        let mut conn = self.pool.get()?;
+        Ok(license_key::table
+            .filter(
+                license_key::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .order_by(license_key::name)
+            .load::<LicenseKey>(&mut conn)?)
     }
 
     pub fn get_client_volume_status(&self, uuid: Uuid) -> Result<Vec<VolumeStatus>> {

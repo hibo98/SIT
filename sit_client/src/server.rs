@@ -1,5 +1,6 @@
 use anyhow::Result;
 use sit_lib::hardware::HardwareInfo;
+use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::{UserProfiles, WinOsInfo};
 use sit_lib::server::Register;
 use sit_lib::software::SoftwareLibrary;
@@ -73,6 +74,18 @@ impl Server {
                 Config::get_uuid()?.unwrap()
             ))
             .json(profiles)
+            .send();
+        Ok(())
+    }
+
+    pub fn licenses(licenses: &LicenseBundle) -> Result<()> {
+        let _request = reqwest::blocking::Client::new()
+            .post(format!(
+                "{}/api/v1/licenses/{}",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
+            .json(licenses)
             .send();
         Ok(())
     }

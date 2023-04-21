@@ -8,4 +8,4 @@ CREATE TABLE "volume_status" (
     "free_space" NUMERIC(20,0) NOT NULL,
     PRIMARY KEY ("id"),
     CONSTRAINT "FK_volume_status_client" FOREIGN KEY ("client_id") REFERENCES "client" ("id") ON UPDATE CASCADE ON DELETE CASCADE
-)
+);

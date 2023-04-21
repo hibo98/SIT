@@ -15,6 +15,7 @@ use wmi::{COMLibrary, WMIConnection};
 
 use crate::config::Config;
 use crate::hardware::Hardware;
+use crate::licenses::Licenses;
 use crate::server::Server;
 use crate::software::Software;
 use crate::system_status::SystemStatus;
@@ -22,6 +23,7 @@ use crate::win_os_info::OsInfo;
 
 mod config;
 mod hardware;
+mod licenses;
 mod server;
 mod service_mgmt;
 mod software;
@@ -53,6 +55,9 @@ fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
         Server::software(&software_lib).unwrap();
         if let Ok(volumes) = SystemStatus::get_volume_status(&wmi_con) {
             Server::status_volumes(&volumes).unwrap();
+        }
+        if let Ok(licenses) = Licenses::collect_licenses() {
+            Server::licenses(&licenses).unwrap();
         }
     }));
 
@@ -156,7 +161,7 @@ fn main() -> Result<()> {
             } else if func == *"user-profiles" {
                 println!("{:#?}", OsInfo::get_user_profiles(&wmi_con));
             } else if func == *"windows-key" {
-                println!("{:#?}", OsInfo::get_windows_key());
+                println!("{:#?}", Licenses::get_windows_key());
             } else if func == *"system-status" {
                 println!("{:#?}", SystemStatus::get_volume_status(&wmi_con));
             }

@@ -214,3 +214,15 @@ pub fn status(database: &State<Database>, uuid: Uuid) -> Template {
         Template::render("clients/status", context! {})
     }
 }
+
+#[get("/<uuid>/licenses")]
+pub fn licenses(database: &State<Database>, uuid: Uuid) -> Template {
+    let client = database.get_client(&uuid);
+    let os_info = database.get_client_os_info(&uuid);
+    if let (Ok(client), Ok(os_info)) = (client, os_info) {
+        let licenses = database.get_client_licenses(uuid).unwrap_or(vec![]);
+        Template::render("clients/licenses", context! { licenses, client, os_info })
+    } else {
+        Template::render("clients/licenses", context! {})
+    }
+}

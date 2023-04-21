@@ -3,6 +3,7 @@ use rocket::response::status;
 use rocket::serde::json::Json;
 use rocket::State;
 use sit_lib::hardware::HardwareInfo;
+use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::UserProfiles;
 use sit_lib::os::WinOsInfo;
 use sit_lib::server::Register;
@@ -114,6 +115,21 @@ pub async fn status_volumes(
 ) -> status::Custom<()> {
     match database.get_client(&uuid) {
         Ok(client) => match database.update_status_volumes(client.id, input.0) {
+            Ok(_) => status::Custom(Status::Ok, ()),
+            Err(_) => status::Custom(Status::InternalServerError, ()),
+        },
+        Err(_) => status::Custom(Status::InternalServerError, ()),
+    }
+}
+
+#[post("/licenses/<uuid>", data = "<input>")]
+pub async fn licenses(
+    database: &State<Database>,
+    uuid: Uuid,
+    input: Json<LicenseBundle>,
+) -> status::Custom<()> {
+    match database.get_client(&uuid) {
+        Ok(client) => match database.update_license_keys(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
             Err(_) => status::Custom(Status::InternalServerError, ()),
         },

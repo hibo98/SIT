@@ -1,0 +1,22 @@
+{{> _layout_client-top title="Client - Lizenzen" client=client os_info=os_info}}
+<h1>Lizenzen</h1>
+<div class="filters">
+
+</div>
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Key</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each licenses}}
+        <tr>
+            <td>{{this.name}}</td>
+            <td>{{this.key}}</td>
+        </tr>
+    {{/each}}
+    </tbody>
+</table>
+{{> _layout_client-bottom}}
