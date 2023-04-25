@@ -8,11 +8,11 @@ use wmi::WMIConnection;
 
 #[derive(Deserialize, Debug)]
 struct Win32_Volume {
-    Capacity: u64,
+    Capacity: Option<u64>,
     DriveLetter: Option<String>,
     DriveType: u32,
-    FileSystem: String,
-    FreeSpace: u64,
+    FileSystem: Option<String>,
+    FreeSpace: Option<u64>,
     Label: Option<String>,
 }
 
@@ -25,13 +25,15 @@ impl SystemStatus {
             if v.DriveType != 3 {
                 continue;
             }
-            if let Some(drive_letter) = v.DriveLetter {
+            if let (Some(drive_letter), Some(capacity), Some(free_space), Some(file_system)) =
+                (v.DriveLetter, v.Capacity, v.FreeSpace, v.FileSystem)
+            {
                 volumes.push(Volume {
                     drive_letter,
                     label: v.Label,
-                    file_system: v.FileSystem,
-                    capacity: v.Capacity,
-                    free_space: v.FreeSpace,
+                    file_system,
+                    capacity,
+                    free_space,
                 });
             }
         }

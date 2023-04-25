@@ -325,13 +325,13 @@ impl Database {
                                 .execute(c)?;
                         } else {
                             diesel::insert_into(userprofile_paths::table)
-                            .values(NewUserProfilePaths {
-                                client_id: &client_id,
-                                user_id: &user.id,
-                                path: &p.path,
-                                size: BigDecimal::from(p.size),
-                            })
-                            .execute(c)?;
+                                .values(NewUserProfilePaths {
+                                    client_id: &client_id,
+                                    user_id: &user.id,
+                                    path: &p.path,
+                                    size: BigDecimal::from(p.size),
+                                })
+                                .execute(c)?;
                         }
                     }
                 }
