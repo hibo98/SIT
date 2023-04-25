@@ -8,5 +8,5 @@ CREATE TABLE "userprofile_paths" (
     CONSTRAINT "FK_userprofile_paths_client" FOREIGN KEY ("client_id") REFERENCES "client" ("id") ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT "FK_userprofile_paths_user" FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE UNIQUE INDEX "INDEX_userprofile_paths_client_id" ON "userprofile_paths" ("client_id");
-CREATE UNIQUE INDEX "INDEX_userprofile_paths_user_id" ON "userprofile_paths" ("user_id");
+CREATE INDEX "INDEX_userprofile_paths_client_id" ON "userprofile_paths" ("client_id");
+CREATE INDEX "INDEX_userprofile_paths_user_id" ON "userprofile_paths" ("user_id");
