@@ -107,7 +107,7 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
                 ),
             })
             .collect();
-        Template::render("clients/profiles", context! { profiles, client, os_info, uuid })
+        Template::render("clients/profiles", context! { profiles, client, os_info, uuid: uuid.to_string() })
     } else {
         Template::render("clients/profiles", context! {})
     }
