@@ -23,7 +23,7 @@
                     <td>{{this.last_download_time}}</td>
                     <td>{{this.last_upload_time}}</td>
                     <td>{{#each this.status}}{{this}}<br/>{{/each}}</td>
-                    <td><a href="/clients/{{client.uuid}}/profiles/{{this.user_sid}}">{{this.size}}</a></td>
+                    <td><a href="/clients/{{uuid}}/profiles/{{this.user_sid}}">{{this.size}}</a></td>
                 </tr>
             {{/each}}
         </tbody>
