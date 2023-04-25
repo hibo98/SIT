@@ -310,6 +310,31 @@ impl Database {
                         ))
                         .execute(c)?;
                 }
+                if let Some(path_size) = p.path_size {
+                    for p in path_size {
+                        let path: Result<UserProfilePaths, _> = userprofile_paths::table
+                            .filter(userprofile_paths::client_id.eq(&client_id))
+                            .filter(userprofile_paths::user_id.eq(&user.id))
+                            .filter(userprofile_paths::path.eq(&p.path))
+                            .get_result(c);
+
+                        if let Ok(path) = path {
+                            diesel::update(userprofile_paths::table)
+                                .set(userprofile_paths::size.eq(BigDecimal::from(p.size)))
+                                .filter(userprofile_paths::id.eq(path.id))
+                                .execute(c)?;
+                        } else {
+                            diesel::insert_into(userprofile_paths::table)
+                            .values(NewUserProfilePaths {
+                                client_id: &client_id,
+                                user_id: &user.id,
+                                path: &p.path,
+                                size: BigDecimal::from(p.size),
+                            })
+                            .execute(c)?;
+                        }
+                    }
+                }
             }
             Ok(())
         })?;

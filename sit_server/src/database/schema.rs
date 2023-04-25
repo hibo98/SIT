@@ -150,6 +150,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    userprofile_paths (id) {
+        id -> Int4,
+        client_id -> Int4,
+        user_id -> Int4,
+        path -> Text,
+        size -> Numeric,
+    }
+}
+
+diesel::table! {
     volume_status (id) {
         id -> Int4,
         client_id -> Int4,
@@ -176,6 +186,8 @@ diesel::joinable!(software_list -> software_version (software_id));
 diesel::joinable!(software_version -> software_info (software_id));
 diesel::joinable!(userprofile -> client (client_id));
 diesel::joinable!(userprofile -> user (user_id));
+diesel::joinable!(userprofile_paths -> client (client_id));
+diesel::joinable!(userprofile_paths -> user (user_id));
 diesel::joinable!(volume_status -> client (client_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
@@ -195,5 +207,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     software_version,
     user,
     userprofile,
+    userprofile_paths,
     volume_status,
 );

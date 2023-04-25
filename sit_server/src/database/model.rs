@@ -384,3 +384,21 @@ pub struct NewLicenseKey<'a> {
     pub name: &'a String,
     pub key: &'a String,
 }
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct UserProfilePaths {
+    pub id: i32,
+    pub client_id: i32,
+    pub user_id: i32,
+    pub path: String,
+    pub size: BigDecimal,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = userprofile_paths)]
+pub struct NewUserProfilePaths<'a> {
+    pub client_id: &'a i32,
+    pub user_id: &'a i32,
+    pub path: &'a String,
+    pub size: BigDecimal,
+}
