@@ -65,6 +65,7 @@ async fn main() -> Result<(), rocket::Error> {
                 clients::hardware,
                 clients::status,
                 clients::licenses,
+                clients::profile_paths,
             ],
         )
         .mount("/profile/", routes![profile::index, profile::profile])

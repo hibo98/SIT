@@ -53,6 +53,12 @@ pub struct VolumeStatus {
     pub occupied_percentage: String,
 }
 
+#[derive(Clone, Debug, Serialize)]
+pub struct UserProfilePaths {
+    pub path: String,
+    pub size: String,
+}
+
 #[get("/")]
 pub fn index(database: &State<Database>) -> Template {
     let client_info = database.get_clients_with_os_info().unwrap_or(vec![]);
@@ -104,6 +110,31 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
         Template::render("clients/profiles", context! { profiles, client, os_info })
     } else {
         Template::render("clients/profiles", context! {})
+    }
+}
+
+#[get("/<uuid>/profiles/<sid>")]
+pub fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String) -> Template {
+    let client = database.get_client(&uuid);
+    let os_info = database.get_client_os_info(&uuid);
+    let user = database.get_user(&sid);
+    let profile_paths = database.get_profile_paths(&uuid, &sid);
+    if let (Ok(client), Ok(os_info), Ok(user), Ok(profile_paths)) =
+        (client, os_info, user, profile_paths)
+    {
+        let paths: Vec<UserProfilePaths> = profile_paths
+            .into_iter()
+            .map(|p| UserProfilePaths {
+                path: p.path,
+                size: display_util::format_big_decimal(&p.size, display_util::format_filesize_byte),
+            })
+            .collect();
+        Template::render(
+            "clients/profiles_path",
+            context! { paths, user, client, os_info },
+        )
+    } else {
+        Template::render("clients/profiles_path", context! {})
     }
 }
 

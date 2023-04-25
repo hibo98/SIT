@@ -580,6 +580,32 @@ impl Database {
             .load::<(UserProfile, User)>(&mut conn)?)
     }
 
+    pub fn get_user(&self, sid: &String) -> Result<User> {
+        let mut conn = self.pool.get()?;
+        Ok(user::table
+            .filter(user::sid.eq(sid))
+            .get_result(&mut conn)?)
+    }
+
+    pub fn get_profile_paths(&self, uuid: &Uuid, sid: &String) -> Result<Vec<UserProfilePaths>> {
+        let mut conn = self.pool.get()?;
+        Ok(userprofile_paths::table
+            .filter(
+                userprofile_paths::client_id.nullable().eq(client::table
+                    .select(client::id)
+                    .filter(client::uuid.eq(uuid))
+                    .single_value()),
+            )
+            .filter(
+                userprofile_paths::user_id.nullable().eq(user::table
+                    .select(user::id)
+                    .filter(user::sid.eq(sid))
+                    .single_value()),
+            )
+            .order_by(userprofile_paths::path)
+            .load::<UserProfilePaths>(&mut conn)?)
+    }
+
     pub fn get_client_software(
         &self,
         uuid: Uuid,

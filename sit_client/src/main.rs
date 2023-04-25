@@ -33,33 +33,11 @@ mod win_os_info;
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     let mut scheduler = JobScheduler::new();
     COMLibrary::new()?;
-    scheduler.add(Job::new("0 * * * * * *".parse().unwrap(), || {
-        let com_con = COMLibrary::without_security().unwrap();
-        let wmi_con = WMIConnection::new(com_con).unwrap();
-        let os_info = OsInfo::get_os_info(&wmi_con);
-        if let Ok(os_info) = os_info {
-            Server::register(&os_info.computer_name).unwrap();
-            Server::os(&os_info).unwrap();
-        }
-    }));
-    scheduler.add(Job::new("0 0/5 * * * * *".parse().unwrap(), || {
-        let com_con = COMLibrary::without_security().unwrap();
-        let wmi_con = WMIConnection::new(com_con).unwrap();
-        if let Ok(hardware_info) = Hardware::get_hardware_info(&wmi_con) {
-            Server::hardware(&hardware_info).unwrap();
-        }
-        if let Ok(profiles) = OsInfo::get_user_profiles(&wmi_con) {
-            Server::profiles(&profiles).unwrap();
-        }
-        let software_lib = Software::get_software_list();
-        Server::software(&software_lib).unwrap();
-        if let Ok(volumes) = SystemStatus::get_volume_status(&wmi_con) {
-            Server::status_volumes(&volumes).unwrap();
-        }
-        if let Ok(licenses) = Licenses::collect_licenses() {
-            Server::licenses(&licenses).unwrap();
-        }
-    }));
+    scheduler.add(Job::new("0 * * * * * *".parse().unwrap(), update_base_info));
+    scheduler.add(Job::new(
+        "0 0/5 * * * * *".parse().unwrap(),
+        update_rich_info,
+    ));
 
     if let Some(shutdown_rx) = shutdown_rx {
         loop {
@@ -82,6 +60,35 @@ fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn update_base_info() {
+    let com_con = COMLibrary::without_security().unwrap();
+    let wmi_con = WMIConnection::new(com_con).unwrap();
+    let os_info = OsInfo::get_os_info(&wmi_con);
+    if let Ok(os_info) = os_info {
+        Server::register(&os_info.computer_name).unwrap();
+        Server::os(&os_info).unwrap();
+    }
+}
+
+fn update_rich_info() {
+    let com_con = COMLibrary::without_security().unwrap();
+    let wmi_con = WMIConnection::new(com_con).unwrap();
+    if let Ok(hardware_info) = Hardware::get_hardware_info(&wmi_con) {
+        Server::hardware(&hardware_info).unwrap();
+    }
+    if let Ok(profiles) = OsInfo::get_user_profiles(&wmi_con) {
+        Server::profiles(&profiles).unwrap();
+    }
+    let software_lib = Software::get_software_list();
+    Server::software(&software_lib).unwrap();
+    if let Ok(volumes) = SystemStatus::get_volume_status(&wmi_con) {
+        Server::status_volumes(&volumes).unwrap();
+    }
+    if let Ok(licenses) = Licenses::collect_licenses() {
+        Server::licenses(&licenses).unwrap();
+    }
 }
 
 fn cli() -> Command {
@@ -113,6 +120,10 @@ fn cli() -> Command {
                         .required(true),
                 ),
         )
+        .subcommand(Command::new("update").about("Update info on server").args([
+            arg!(-b --base "Update only base info").action(ArgAction::SetTrue),
+            arg!(-r --rich "Update only rich info").action(ArgAction::SetTrue),
+        ]))
 }
 
 fn main() -> Result<()> {
@@ -164,6 +175,17 @@ fn main() -> Result<()> {
                 println!("{:#?}", Licenses::get_windows_key());
             } else if func == *"system-status" {
                 println!("{:#?}", SystemStatus::get_volume_status(&wmi_con));
+            }
+        }
+        Some(("update", sub_matches)) => {
+            COMLibrary::new()?;
+            if let Some(true) = sub_matches.get_one::<bool>("base") {
+                update_base_info();
+            } else if let Some(true) = sub_matches.get_one::<bool>("rich") {
+                update_rich_info();
+            } else {
+                update_base_info();
+                update_rich_info();
             }
         }
         _ => unreachable!(),

@@ -1,0 +1,21 @@
+{{> _layout_client-top title="Client - Profile Info" client=client os_info=os_info}}
+<h1>{{user.user_name}}</h1>
+<div class="client-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Pfad</th>
+                <th>Größe</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each paths}}
+                <tr>
+                    <td>{{this.path}}</td>
+                    <td>{{this.size}}</td>
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_client-bottom}}
