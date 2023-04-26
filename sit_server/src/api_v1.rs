@@ -29,21 +29,27 @@ pub async fn register(
                     uuid: Some(uuid),
                 }),
             ),
-            Err(_) => status::Custom(
+            Err(error) => {
+                println!("[ERROR] In api_v1 /register create_os_info {:?}", error);
+                status::Custom(
+                    Status::InternalServerError,
+                    Json(Register {
+                        name: computer_name,
+                        uuid: None,
+                    }),
+                )
+            }
+        },
+        Err(error) => {
+            println!("[ERROR] In api_v1 /register create_client {:?}", error);
+            status::Custom(
                 Status::InternalServerError,
                 Json(Register {
                     name: computer_name,
                     uuid: None,
                 }),
-            ),
-        },
-        Err(_) => status::Custom(
-            Status::InternalServerError,
-            Json(Register {
-                name: computer_name,
-                uuid: None,
-            }),
-        ),
+            )
+        }
     }
 }
 
@@ -56,9 +62,15 @@ pub async fn os(
     match database.get_client(&uuid) {
         Ok(client) => match database.update_os_info(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
-            Err(_) => status::Custom(Status::InternalServerError, ()),
+            Err(error) => {
+                println!("[ERROR] In api_v1 /os/{} update_os_info {:?}", uuid, error);
+                status::Custom(Status::InternalServerError, ())
+            },
         },
-        Err(_) => status::Custom(Status::InternalServerError, ()),
+        Err(error) => {
+            println!("[ERROR] In api_v1 /os/{} get_client {:?}", uuid, error);
+            status::Custom(Status::InternalServerError, ())
+        },
     }
 }
 
@@ -71,9 +83,15 @@ pub async fn hardware(
     match database.get_client(&uuid) {
         Ok(client) => match database.create_hardware_info(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
-            Err(_) => status::Custom(Status::InternalServerError, ()),
+            Err(error) => {
+                println!("[ERROR] In api_v1 /hardware/{} create_hardware_info {:?}", uuid, error);
+                status::Custom(Status::InternalServerError, ())
+            },
         },
-        Err(_) => status::Custom(Status::InternalServerError, ()),
+        Err(error) => {
+            println!("[ERROR] In api_v1 /hardware/{} get_client {:?}", uuid, error);
+            status::Custom(Status::InternalServerError, ())
+        },
     }
 }
 
@@ -86,9 +104,15 @@ pub async fn software(
     match database.get_client(&uuid) {
         Ok(client) => match database.update_software_lib(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
-            Err(_) => status::Custom(Status::InternalServerError, ()),
+            Err(error) => {
+                println!("[ERROR] In api_v1 /software/{} update_software_lib {:?}", uuid, error);
+                status::Custom(Status::InternalServerError, ())
+            },
         },
-        Err(_) => status::Custom(Status::InternalServerError, ()),
+        Err(error) => {
+            println!("[ERROR] In api_v1 /software/{} get_client {:?}", uuid, error);
+            status::Custom(Status::InternalServerError, ())
+        },
     }
 }
 
@@ -101,9 +125,15 @@ pub async fn profiles(
     match database.get_client(&uuid) {
         Ok(client) => match database.update_profiles(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
-            Err(_) => status::Custom(Status::InternalServerError, ()),
+            Err(error) => {
+                println!("[ERROR] In api_v1 /profiles/{} update_profiles {:?}", uuid, error);
+                status::Custom(Status::InternalServerError, ())
+            },
         },
-        Err(_) => status::Custom(Status::InternalServerError, ()),
+        Err(error) => {
+            println!("[ERROR] In api_v1 /profiles/{} get_client {:?}", uuid, error);
+            status::Custom(Status::InternalServerError, ())
+        },
     }
 }
 
@@ -116,9 +146,15 @@ pub async fn status_volumes(
     match database.get_client(&uuid) {
         Ok(client) => match database.update_status_volumes(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
-            Err(_) => status::Custom(Status::InternalServerError, ()),
+            Err(error) => {
+                println!("[ERROR] In api_v1 /status/{}/volumes update_status_volumes {:?}", uuid, error);
+                status::Custom(Status::InternalServerError, ())
+            },
         },
-        Err(_) => status::Custom(Status::InternalServerError, ()),
+        Err(error) => {
+            println!("[ERROR] In api_v1 /status/{}/volumes get_client {:?}", uuid, error);
+            status::Custom(Status::InternalServerError, ())
+        },
     }
 }
 
@@ -131,8 +167,14 @@ pub async fn licenses(
     match database.get_client(&uuid) {
         Ok(client) => match database.update_license_keys(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
-            Err(_) => status::Custom(Status::InternalServerError, ()),
+            Err(error) => {
+                println!("[ERROR] In api_v1 /licenses/{} update_license_keys {:?}", uuid, error);
+                status::Custom(Status::InternalServerError, ())
+            },
         },
-        Err(_) => status::Custom(Status::InternalServerError, ()),
+        Err(error) => {
+            println!("[ERROR] In api_v1 /licenses/{} get_client {:?}", uuid, error);
+            status::Custom(Status::InternalServerError, ())
+        },
     }
 }
