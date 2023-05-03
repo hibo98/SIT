@@ -1,0 +1,31 @@
+{{> _layout_system_status-top title="Zustand - Laufwerke"}}
+<h1>Laufwerke</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Computer</th>
+        <th>Laufwerk</th>
+        <th>Bezeichnung</th>
+        <th>Dateisystem</th>
+        <th>Kapazität</th>
+        <th>Frei</th>
+        <th>Belegt</th>
+        <th>%-Belegung</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each volumes}}
+        <tr>
+            <td><a href="/clients/{{this.[1].[0].uuid}}">{{this.[1].[1].computer_name}}.{{this.[1].[1].domain}}</a></td>
+            <td>{{this.[0].drive_letter}}</td>
+            <td>{{this.[0].label}}</td>
+            <td>{{this.[0].file_system}}</td>
+            <td>{{this.[0].capacity}}</td>
+            <td>{{this.[0].free_space}}</td>
+            <td>{{this.[0].occupied_space}}</td>
+            <td>{{this.[0].occupied_percentage}}</td>
+        </tr>
+    {{/each}}
+    </tbody>
+</table>
+{{> _layout_system_status-bottom}}

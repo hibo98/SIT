@@ -946,4 +946,16 @@ impl Database {
             .order_by(volume_status::drive_letter)
             .load::<VolumeStatus>(&mut conn)?)
     }
+
+    pub fn get_system_status_volume_crit(&self) -> Result<Vec<(VolumeStatus, (Client, OsInfo))>> {
+        let mut conn = self.pool.get()?;
+        Ok(volume_status::table
+            .inner_join(client::table.inner_join(os_info::table))
+            .filter(
+                (volume_status::free_space / volume_status::capacity)
+                    .lt(BigDecimal::try_from(0.1)?),
+            )
+            .or_filter(volume_status::free_space.lt(BigDecimal::from(5000000000_u64)))
+            .load::<(VolumeStatus, (Client, OsInfo))>(&mut conn)?)
+    }
 }

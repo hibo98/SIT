@@ -16,6 +16,7 @@ mod hardware;
 mod ms_magic;
 mod profile;
 mod software;
+mod system_status;
 
 #[get("/")]
 fn index() -> Template {
@@ -69,6 +70,10 @@ async fn main() -> Result<(), rocket::Error> {
             ],
         )
         .mount("/profile/", routes![profile::index, profile::profile])
+        .mount(
+            "/system-status",
+            routes![system_status::index, system_status::volumes],
+        )
         .mount(
             "/api/v1/",
             routes![
