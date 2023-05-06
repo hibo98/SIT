@@ -1,6 +1,7 @@
 use rocket::http::Status;
 use rocket::response::status;
 use rocket::serde::json::Json;
+use rocket::Route;
 use rocket::State;
 use sit_lib::hardware::HardwareInfo;
 use sit_lib::licenses::LicenseBundle;
@@ -207,4 +208,16 @@ pub async fn licenses(
             status::Custom(Status::InternalServerError, ())
         }
     }
+}
+
+pub fn routes() -> Vec<Route> {
+    routes![
+        register,
+        os,
+        hardware,
+        software,
+        profiles,
+        status_volumes,
+        licenses,
+    ]
 }

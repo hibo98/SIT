@@ -1,9 +1,11 @@
 use bigdecimal::ToPrimitive;
-use rocket::State;
+use rocket::{Route, State};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 
-use crate::{database::Database, display_util};
+use crate::database::Database;
+
+use super::display_util;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ProcessorCount {
@@ -244,4 +246,22 @@ pub fn network_adapter_clients(database: &State<Database>, name: String) -> Temp
         .get_network_adapter_clients(&name)
         .unwrap_or(vec![]);
     Template::render("hardware/clients", context! { clients, headline: name })
+}
+
+pub fn routes() -> Vec<Route> {
+    routes![
+        index,
+        processors,
+        processor_clients,
+        memory,
+        memory_clients,
+        graphics_cards,
+        graphics_card_clients,
+        disks,
+        disk_clients,
+        models,
+        model_clients,
+        network_adapters,
+        network_adapter_clients,
+    ]
 }

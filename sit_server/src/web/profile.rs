@@ -1,9 +1,11 @@
-use rocket::State;
+use rocket::{Route, State};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{database::Database, display_util, ms_magic};
+use crate::database::Database;
+
+use super::{ms_magic, display_util};
 
 #[derive(Clone, Debug, Serialize)]
 struct Profile {
@@ -85,4 +87,8 @@ pub fn profile(database: &State<Database>, sid: String) -> Template {
     } else {
         Template::render("profile", context! {})
     }
+}
+
+pub fn routes() -> Vec<Route> {
+    routes![index, profile]
 }

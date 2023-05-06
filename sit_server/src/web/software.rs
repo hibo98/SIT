@@ -1,4 +1,4 @@
-use rocket::State;
+use rocket::{Route, State};
 use rocket_dyn_templates::{context, Template};
 
 use crate::database::Database;
@@ -53,4 +53,13 @@ pub fn version(database: &State<Database>, id: i32) -> Template {
         }
     }
     Template::render("software_version", context! {})
+}
+
+pub fn routes() -> Vec<Route> {
+    routes![
+        index,
+        software,
+        software_computer,
+        version,
+    ]
 }

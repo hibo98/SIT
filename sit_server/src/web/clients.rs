@@ -1,9 +1,11 @@
-use rocket::State;
+use rocket::{Route, State};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{database::Database, display_util, ms_magic};
+use crate::database::Database;
+
+use super::{ms_magic, display_util};
 
 #[derive(Clone, Debug, Serialize)]
 struct Profile {
@@ -256,4 +258,17 @@ pub fn licenses(database: &State<Database>, uuid: Uuid) -> Template {
     } else {
         Template::render("clients/licenses", context! {})
     }
+}
+
+pub fn routes() -> Vec<Route> {
+    routes![
+        index,
+        client,
+        profiles,
+        software,
+        hardware,
+        status,
+        licenses,
+        profile_paths,
+    ]
 }

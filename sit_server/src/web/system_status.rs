@@ -1,9 +1,11 @@
-use rocket::State;
+use rocket::{State, Route};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{database::Database, display_util};
+use crate::database::Database;
+
+use super::display_util;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct VolumeStatus {
@@ -57,4 +59,8 @@ pub fn volumes(database: &State<Database>) -> Template {
         })
         .collect();
     Template::render("system_status/volumes", context! { volumes })
+}
+
+pub fn routes() -> Vec<Route> {
+    routes![index, volumes]
 }
