@@ -8,7 +8,7 @@ use crate::database::Database;
 use super::display_util;
 
 #[derive(Clone, Debug, Serialize)]
-pub struct VolumeStatus {
+struct VolumeStatus {
     pub uuid: Uuid,
     pub computer_name: String,
     pub domain_name: String,
@@ -22,13 +22,13 @@ pub struct VolumeStatus {
 }
 
 #[get("/")]
-pub fn index(database: &State<Database>) -> Template {
+fn index(database: &State<Database>) -> Template {
     //TOOD: Retrive info about how many Problems in the categories
     Template::render("system_status", context! {})
 }
 
 #[get("/volumes")]
-pub fn volumes(database: &State<Database>) -> Template {
+fn volumes(database: &State<Database>) -> Template {
     let volumes: Vec<VolumeStatus> = database
         .get_system_status_volume_crit()
         .unwrap_or_default()

@@ -15,7 +15,7 @@ use uuid::Uuid;
 use crate::database::Database;
 
 #[post("/register", data = "<input>")]
-pub async fn register(
+async fn register(
     database: &State<Database>,
     input: Json<Register>,
 ) -> status::Custom<Json<Register>> {
@@ -55,7 +55,7 @@ pub async fn register(
 }
 
 #[post("/os/<uuid>", data = "<input>")]
-pub async fn os(
+async fn os(
     database: &State<Database>,
     uuid: Uuid,
     input: Json<WinOsInfo>,
@@ -76,7 +76,7 @@ pub async fn os(
 }
 
 #[post("/hardware/<uuid>", data = "<input>")]
-pub async fn hardware(
+async fn hardware(
     database: &State<Database>,
     uuid: Uuid,
     input: Json<HardwareInfo>,
@@ -103,7 +103,7 @@ pub async fn hardware(
 }
 
 #[post("/software/<uuid>", data = "<input>")]
-pub async fn software(
+async fn software(
     database: &State<Database>,
     uuid: Uuid,
     input: Json<SoftwareLibrary>,
@@ -130,7 +130,7 @@ pub async fn software(
 }
 
 #[post("/profiles/<uuid>", data = "<input>")]
-pub async fn profiles(
+async fn profiles(
     database: &State<Database>,
     uuid: Uuid,
     input: Json<UserProfiles>,
@@ -157,7 +157,7 @@ pub async fn profiles(
 }
 
 #[post("/status/<uuid>/volumes", data = "<input>")]
-pub async fn status_volumes(
+async fn status_volumes(
     database: &State<Database>,
     uuid: Uuid,
     input: Json<VolumeList>,
@@ -184,7 +184,7 @@ pub async fn status_volumes(
 }
 
 #[post("/licenses/<uuid>", data = "<input>")]
-pub async fn licenses(
+async fn licenses(
     database: &State<Database>,
     uuid: Uuid,
     input: Json<LicenseBundle>,

@@ -31,7 +31,7 @@ struct UserWithProfileCount {
 }
 
 #[get("/")]
-pub fn index(database: &State<Database>) -> Template {
+fn index(database: &State<Database>) -> Template {
     let profiles: Vec<UserWithProfileCount> = database
         .get_profiles()
         .unwrap_or(vec![])
@@ -47,7 +47,7 @@ pub fn index(database: &State<Database>) -> Template {
 }
 
 #[get("/<sid>")]
-pub fn profile(database: &State<Database>, sid: String) -> Template {
+fn profile(database: &State<Database>, sid: String) -> Template {
     let profiles_result = database.get_profile_info(sid);
     if let Ok(profiles) = profiles_result {
         let profile: Vec<Profile> = profiles

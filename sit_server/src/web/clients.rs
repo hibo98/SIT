@@ -23,19 +23,19 @@ struct Profile {
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct Memory {
+struct Memory {
     pub capacity: String,
     pub stick_count: i64,
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct MemoryStick {
+struct MemoryStick {
     pub capacity: String,
     pub bank_label: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct Disk {
+struct Disk {
     pub model: String,
     pub serial_number: String,
     pub size: String,
@@ -45,7 +45,7 @@ pub struct Disk {
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct VolumeStatus {
+struct VolumeStatus {
     pub drive_letter: String,
     pub label: Option<String>,
     pub file_system: String,
@@ -56,19 +56,19 @@ pub struct VolumeStatus {
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct UserProfilePaths {
+struct UserProfilePaths {
     pub path: String,
     pub size: String,
 }
 
 #[get("/")]
-pub fn index(database: &State<Database>) -> Template {
+fn index(database: &State<Database>) -> Template {
     let client_info = database.get_clients_with_os_info().unwrap_or(vec![]);
     Template::render("clients", context! { clients: client_info })
 }
 
 #[get("/<uuid>")]
-pub fn client(database: &State<Database>, uuid: Uuid) -> Template {
+fn client(database: &State<Database>, uuid: Uuid) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
@@ -79,7 +79,7 @@ pub fn client(database: &State<Database>, uuid: Uuid) -> Template {
 }
 
 #[get("/<uuid>/profiles")]
-pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
+fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     let client_profiles = database.get_client_profiles(&uuid);
@@ -116,7 +116,7 @@ pub fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
 }
 
 #[get("/<uuid>/profiles/<sid>")]
-pub fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String) -> Template {
+fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     let user = database.get_user(&sid);
@@ -141,7 +141,7 @@ pub fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String) -> Tem
 }
 
 #[get("/<uuid>/software")]
-pub fn software(database: &State<Database>, uuid: Uuid) -> Template {
+fn software(database: &State<Database>, uuid: Uuid) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     let software = database.get_client_software(uuid);
@@ -153,7 +153,7 @@ pub fn software(database: &State<Database>, uuid: Uuid) -> Template {
 }
 
 #[get("/<uuid>/hardware")]
-pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
+fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
@@ -212,7 +212,7 @@ pub fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
 }
 
 #[get("/<uuid>/status")]
-pub fn status(database: &State<Database>, uuid: Uuid) -> Template {
+fn status(database: &State<Database>, uuid: Uuid) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
@@ -249,7 +249,7 @@ pub fn status(database: &State<Database>, uuid: Uuid) -> Template {
 }
 
 #[get("/<uuid>/licenses")]
-pub fn licenses(database: &State<Database>, uuid: Uuid) -> Template {
+fn licenses(database: &State<Database>, uuid: Uuid) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
