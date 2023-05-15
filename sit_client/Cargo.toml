@@ -11,7 +11,7 @@ default-target = "x86_64-pc-windows-gnu"
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-wmi = "0.12"
+wmi = "0.13"
 winreg = { version = "0.50", features = ["serialization-serde"] }
 sit_lib = { path = "../sit_lib" }
 reqwest = { version = "0.11", features = ["json", "blocking"] }
