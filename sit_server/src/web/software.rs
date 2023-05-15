@@ -56,10 +56,5 @@ fn version(database: &State<Database>, id: i32) -> Template {
 }
 
 pub fn routes() -> Vec<Route> {
-    routes![
-        index,
-        software,
-        software_computer,
-        version,
-    ]
+    routes![index, software, software_computer, version,]
 }

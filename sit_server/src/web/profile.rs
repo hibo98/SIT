@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::database::Database;
 
-use super::{ms_magic, display_util};
+use super::{display_util, ms_magic};
 
 #[derive(Clone, Debug, Serialize)]
 struct Profile {

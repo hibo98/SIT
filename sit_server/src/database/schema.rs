@@ -1,6 +1,23 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    auth_sessions (id) {
+        id -> Int4,
+        session_id -> Text,
+        user_id -> Int4,
+        valid_until -> Timestamp,
+    }
+}
+
+diesel::table! {
+    auth_user (id) {
+        id -> Int4,
+        username -> Text,
+        password -> Text,
+    }
+}
+
+diesel::table! {
     bios (client_id) {
         client_id -> Int4,
         name -> Text,
@@ -171,6 +188,7 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(auth_sessions -> auth_user (user_id));
 diesel::joinable!(bios -> client (client_id));
 diesel::joinable!(computer_model -> client (client_id));
 diesel::joinable!(disks -> client (client_id));
@@ -191,6 +209,8 @@ diesel::joinable!(userprofile_paths -> user (user_id));
 diesel::joinable!(volume_status -> client (client_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    auth_sessions,
+    auth_user,
     bios,
     client,
     computer_model,

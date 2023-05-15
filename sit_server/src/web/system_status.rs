@@ -1,4 +1,4 @@
-use rocket::{State, Route};
+use rocket::{Route, State};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
@@ -23,8 +23,11 @@ struct VolumeStatus {
 
 #[get("/")]
 fn index(database: &State<Database>) -> Template {
-    //TOOD: Retrive info about how many Problems in the categories
-    Template::render("system_status", context! {})
+    let crit_volume = database
+        .get_system_status_volume_crit()
+        .unwrap_or_default()
+        .len();
+    Template::render("system_status", context! { crit_volume })
 }
 
 #[get("/volumes")]

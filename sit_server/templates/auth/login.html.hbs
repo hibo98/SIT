@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schkola IT-Manager - Login</title>
+    <link rel="stylesheet" type="text/css" href="/static/style/login.css" />
+    <link rel="stylesheet" type="text/css" href="/static/style/font.css" />
+</head>
+
+<body>
+    <div id="app">
+        <div class="login fullscreen">
+            <div class="fullscreen-center">
+                <div class="fullscreen-body">
+                    <div class="hero-unit">
+                        <img class="logo-big" src="/images/logo.svg" alt="SCHKOLA IT-Manager" />
+                        <form id="login" action="/auth/login" method="post" accept-charset="utf-8">
+                            <div class="form-group">
+                                <div class="formGroup-label">
+                                    <label for="username">Benutzername</label>
+                                </div>
+                                <input id="username" name="username" type="text" class="form-control" value=""
+                                    autocapitalize="none">
+                            </div>
+
+                            <div class="form-group">
+                                <div class="formGroup-label">
+                                    <label for="password">Passwort</label>
+                                </div>
+                                <input id="password" name="password" type="password" class="form-control"
+                                    autocomplete="off">
+                            </div>
+
+                            <!--<div class="form-group">
+                                <label class="inline-label">
+                                    <input name="remember_me" value="1" type="checkbox">
+                                    <span class="label-text">An mich erinnern</span>
+                                </label>
+                            </div>-->
+
+                            <div class="form-controls">
+                                <button class="btn btn--primary" type="submit">Anmelden</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

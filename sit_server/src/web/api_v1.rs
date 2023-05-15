@@ -55,11 +55,7 @@ async fn register(
 }
 
 #[post("/os/<uuid>", data = "<input>")]
-async fn os(
-    database: &State<Database>,
-    uuid: Uuid,
-    input: Json<WinOsInfo>,
-) -> status::Custom<()> {
+async fn os(database: &State<Database>, uuid: Uuid, input: Json<WinOsInfo>) -> status::Custom<()> {
     match database.get_client(&uuid) {
         Ok(client) => match database.update_os_info(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),

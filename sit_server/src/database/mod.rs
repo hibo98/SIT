@@ -4,6 +4,7 @@ use std::env;
 
 use anyhow::Result;
 use bigdecimal::BigDecimal;
+use chrono::NaiveDateTime;
 use diesel::dsl::{count, count_star, max, sum};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
@@ -957,5 +958,88 @@ impl Database {
             )
             .or_filter(volume_status::free_space.lt(BigDecimal::from(5000000000_u64)))
             .load::<(VolumeStatus, (Client, OsInfo))>(&mut conn)?)
+    }
+
+    pub fn new_auth_user(&self, username: &str, password_hash: &str) -> Result<AuthUser> {
+        let mut conn = self.pool.get()?;
+        Ok(diesel::insert_into(auth_user::table)
+            .values(NewAuthUser {
+                username,
+                password: password_hash,
+            })
+            .get_result(&mut conn)?)
+    }
+
+    pub fn get_auth_user_by_username(&self, username: &str) -> Result<AuthUser> {
+        let mut conn = self.pool.get()?;
+        Ok(auth_user::table
+            .filter(auth_user::username.eq(username))
+            .get_result(&mut conn)?)
+    }
+
+    pub fn get_auth_user_by_id(&self, id: i32) -> Result<AuthUser> {
+        let mut conn = self.pool.get()?;
+        Ok(auth_user::table
+            .filter(auth_user::id.eq(id))
+            .get_result(&mut conn)?)
+    }
+
+    pub fn set_auth_user_password(&self, user_id: i32, password_hash: &str) -> Result<usize> {
+        let mut conn = self.pool.get()?;
+        Ok(diesel::update(auth_user::table)
+            .filter(auth_user::id.eq(user_id))
+            .set(auth_user::password.eq(password_hash))
+            .execute(&mut conn)?)
+    }
+
+    pub fn delete_auth_user(&self, user_id: i32) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        diesel::delete(auth_user::table)
+            .filter(auth_user::id.eq(user_id))
+            .execute(&mut conn)?;
+        Ok(())
+    }
+
+    pub fn get_auth_session_by_session_id(&self, session_id: &str) -> Result<AuthSessions> {
+        let mut conn = self.pool.get()?;
+        Ok(auth_sessions::table
+            .filter(auth_sessions::session_id.eq(session_id))
+            .get_result(&mut conn)?)
+    }
+
+    pub fn update_session_exp(
+        &self,
+        session_id: &str,
+        valid_until: NaiveDateTime,
+    ) -> Result<usize> {
+        let mut conn = self.pool.get()?;
+        Ok(diesel::update(auth_sessions::table)
+            .filter(auth_sessions::session_id.eq(session_id))
+            .set(auth_sessions::valid_until.eq(valid_until))
+            .execute(&mut conn)?)
+    }
+
+    pub fn add_new_session(
+        &self,
+        user_id: i32,
+        session_id: &str,
+        valid_until: NaiveDateTime,
+    ) -> Result<AuthSessions> {
+        let mut conn = self.pool.get()?;
+        Ok(diesel::insert_into(auth_sessions::table)
+            .values(NewAuthSessions {
+                user_id: &user_id,
+                session_id,
+                valid_until,
+            })
+            .get_result(&mut conn)?)
+    }
+
+    pub fn delete_session(&self, session_id: &str) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        diesel::delete(auth_sessions::table)
+            .filter(auth_sessions::session_id.eq(session_id))
+            .execute(&mut conn)?;
+        Ok(())
     }
 }

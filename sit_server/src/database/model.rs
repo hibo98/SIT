@@ -402,3 +402,33 @@ pub struct NewUserProfilePaths<'a> {
     pub path: &'a String,
     pub size: BigDecimal,
 }
+
+#[derive(Insertable)]
+#[diesel(table_name = auth_user)]
+pub struct NewAuthUser<'a> {
+    pub username: &'a str,
+    pub password: &'a str,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct AuthUser {
+    pub id: i32,
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = auth_sessions)]
+pub struct NewAuthSessions<'a> {
+    pub session_id: &'a str,
+    pub user_id: &'a i32,
+    pub valid_until: NaiveDateTime,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct AuthSessions {
+    pub id: i32,
+    pub session_id: String,
+    pub user_id: i32,
+    pub valid_until: NaiveDateTime,
+}

@@ -1,0 +1,142 @@
+body {
+    overflow-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    font-family: 'SanukWebPro', sans-serif;
+    margin: 0;
+    background-color: #DDD;
+}
+
+#app {
+    display: flex;
+    flex: 1;
+    min-width: 1024px;
+    overflow: auto;
+}
+
+.fullscreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: auto;
+}
+
+.login {
+    padding: 24px;
+}
+
+.fullscreen-center {
+    margin: auto;
+}
+
+.fullscreen-body {
+    text-align: start;
+    display: inline-block;
+}
+
+.login .hero-unit {
+    width: 430px;
+    margin: 0 0 28px;
+}
+
+.hero-unit {
+    padding: 23px 25px;
+    /*border: 1px solid var(--border);*/
+    background-color: #FFF;
+    border-radius: 6px;
+    box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.login .company-logo {
+    max-height: 100px;
+    max-width: 200px;
+    margin: 20px auto 42px;
+    display: block;
+}
+
+.form-group {
+    clear: left;
+    margin-bottom: 16px;
+}
+
+.form-group+.form-group {
+    margin-top: 0;
+}
+
+.formGroup-label {
+    padding: 0 2px;
+    margin-bottom: 5px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="date"],
+input[type="url"],
+textarea,
+.form-control,
+.form-group .checkbox,
+.form-group .radio {
+    display: block;
+    padding: 7px 12px;
+    width: calc(100% - 26px);
+    height: 41px;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 25px;
+    border: 1px solid #CCC;
+    border-radius: 3px;
+    transition: none;
+    box-shadow: none;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+    margin: 0;
+}
+
+.login .form-controls {
+    flex-direction: column;
+}
+
+.form-controls {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.btn {
+    display: inline-block;
+    font-size: 14px;
+    padding: 10px 24px 9px;
+    color: #FFF;
+    background: #1d3e8f;
+    border: 1px solid #CCC;
+    outline: none !important;
+    border-radius: 4px;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.login .form-controls .btn {
+    width: 100%;
+}
