@@ -1,9 +1,9 @@
-use rocket::{Route, State};
+use rocket::{Route, State, response::Redirect};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::database::Database;
+use crate::{database::Database, auth::User};
 
 use super::{display_util, ms_magic};
 
@@ -62,24 +62,24 @@ struct UserProfilePaths {
 }
 
 #[get("/")]
-fn index(database: &State<Database>) -> Template {
+fn index(database: &State<Database>, user: User) -> Template {
     let client_info = database.get_clients_with_os_info().unwrap_or(vec![]);
-    Template::render("clients", context! { clients: client_info })
+    Template::render("clients", context! { clients: client_info, user })
 }
 
 #[get("/<uuid>")]
-fn client(database: &State<Database>, uuid: Uuid) -> Template {
+fn client(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
-        Template::render("client", context! { client, os_info })
+        Template::render("client", context! { client, os_info, user })
     } else {
         Template::render("client", context! {})
     }
 }
 
 #[get("/<uuid>/profiles")]
-fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
+fn profiles(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     let client_profiles = database.get_client_profiles(&uuid);
@@ -109,20 +109,20 @@ fn profiles(database: &State<Database>, uuid: Uuid) -> Template {
                 ),
             })
             .collect();
-        Template::render("clients/profiles", context! { profiles, client, os_info })
+        Template::render("clients/profiles", context! { profiles, client, os_info, user })
     } else {
         Template::render("clients/profiles", context! {})
     }
 }
 
 #[get("/<uuid>/profiles/<sid>")]
-fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String) -> Template {
+fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
-    let user = database.get_user(&sid);
+    let computer_user = database.get_user(&sid);
     let profile_paths = database.get_profile_paths(&uuid, &sid);
-    if let (Ok(client), Ok(os_info), Ok(user), Ok(profile_paths)) =
-        (client, os_info, user, profile_paths)
+    if let (Ok(client), Ok(os_info), Ok(computer_user), Ok(profile_paths)) =
+        (client, os_info, computer_user, profile_paths)
     {
         let paths: Vec<UserProfilePaths> = profile_paths
             .into_iter()
@@ -133,7 +133,7 @@ fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String) -> Templat
             .collect();
         Template::render(
             "clients/profiles_path",
-            context! { paths, user, client, os_info },
+            context! { paths, computer_user, client, os_info, user },
         )
     } else {
         Template::render("clients/profiles_path", context! {})
@@ -141,19 +141,19 @@ fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String) -> Templat
 }
 
 #[get("/<uuid>/software")]
-fn software(database: &State<Database>, uuid: Uuid) -> Template {
+fn software(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     let software = database.get_client_software(uuid);
     if let (Ok(client), Ok(os_info), Ok(software)) = (client, os_info, software) {
-        Template::render("clients/software", context! { software, client, os_info })
+        Template::render("clients/software", context! { software, client, os_info, user })
     } else {
         Template::render("clients/software", context! {})
     }
 }
 
 #[get("/<uuid>/hardware")]
-fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
+fn hardware(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
@@ -204,7 +204,7 @@ fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
         let network_adapters = database.get_client_network_adapters(uuid).unwrap_or(vec![]);
         Template::render(
             "clients/hardware",
-            context! { processors, memory, memory_sticks, graphics_cards, disks, computer_models, bios_list, network_adapters, client, os_info },
+            context! { processors, memory, memory_sticks, graphics_cards, disks, computer_models, bios_list, network_adapters, client, os_info, user },
         )
     } else {
         Template::render("clients/hardware", context! {})
@@ -212,7 +212,7 @@ fn hardware(database: &State<Database>, uuid: Uuid) -> Template {
 }
 
 #[get("/<uuid>/status")]
-fn status(database: &State<Database>, uuid: Uuid) -> Template {
+fn status(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
@@ -242,22 +242,27 @@ fn status(database: &State<Database>, uuid: Uuid) -> Template {
                 ),
             })
             .collect();
-        Template::render("clients/status", context! { volumes, client, os_info })
+        Template::render("clients/status", context! { volumes, client, os_info, user })
     } else {
         Template::render("clients/status", context! {})
     }
 }
 
 #[get("/<uuid>/licenses")]
-fn licenses(database: &State<Database>, uuid: Uuid) -> Template {
+fn licenses(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
         let licenses = database.get_client_licenses(uuid).unwrap_or(vec![]);
-        Template::render("clients/licenses", context! { licenses, client, os_info })
+        Template::render("clients/licenses", context! { licenses, client, os_info, user })
     } else {
         Template::render("clients/licenses", context! {})
     }
+}
+
+#[get("/<_..>", rank = 10)]
+fn catch_all() -> Redirect {
+    Redirect::to(uri!("/auth/login"))
 }
 
 pub fn routes() -> Vec<Route> {
@@ -270,5 +275,6 @@ pub fn routes() -> Vec<Route> {
         status,
         licenses,
         profile_paths,
+        catch_all,
     ]
 }

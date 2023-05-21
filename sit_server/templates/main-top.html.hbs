@@ -8,7 +8,10 @@
     <link rel="stylesheet" type="text/css" href="/static/style/font.css"/>
 </head>
 <body>
-<header id="top-header"><a href="/" id="top-logo"><img src="/static/images/logo.svg" alt="SCHKOLA IT-Manager"/></a></header>
+<header id="top-header">
+    <a href="/" id="top-logo"><img src="/static/images/logo.svg" alt="SCHKOLA IT-Manager"/></a>
+    <div id="user-info">{{user.username}} <a href="/auth/logout">ABMELDEN</a></div>
+</header>
 <main id="main">
     <nav id="left-nav">
         <a href="/clients">Clients</a>

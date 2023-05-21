@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schkola IT-Manager - Login</title>
+    <title>Schkola IT-Manager - Nutzer erstellen</title>
     <link rel="stylesheet" type="text/css" href="/static/style/login.css" />
     <link rel="stylesheet" type="text/css" href="/static/style/font.css" />
 </head>
@@ -16,7 +16,7 @@
                 <div class="fullscreen-body">
                     <div class="hero-unit">
                         <img class="logo-big" src="/static/images/logo.svg" alt="SCHKOLA IT-Manager" />
-                        <form id="login" action="/auth/login" method="post" accept-charset="utf-8">
+                        <form id="login" action="/auth/users/new" method="post" accept-charset="utf-8">
                             <div class="form-group">
                                 <div class="formGroup-label">
                                     <label for="username">Benutzername</label>
@@ -41,7 +41,7 @@
                             </div>-->
 
                             <div class="form-controls">
-                                <button class="btn btn--primary" type="submit">Anmelden</button>
+                                <button class="btn btn--primary" type="submit">Nutzer erstellen</button>
                             </div>
                         </form>
 

@@ -1,9 +1,9 @@
-use rocket::{Route, State};
+use rocket::{Route, State, response::Redirect};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::database::Database;
+use crate::{database::Database, auth::User};
 
 use super::display_util;
 
@@ -22,16 +22,16 @@ struct VolumeStatus {
 }
 
 #[get("/")]
-fn index(database: &State<Database>) -> Template {
+fn index(database: &State<Database>, user: User) -> Template {
     let crit_volume = database
         .get_system_status_volume_crit()
         .unwrap_or_default()
         .len();
-    Template::render("system_status", context! { crit_volume })
+    Template::render("system_status", context! { crit_volume, user })
 }
 
 #[get("/volumes")]
-fn volumes(database: &State<Database>) -> Template {
+fn volumes(database: &State<Database>, user: User) -> Template {
     let volumes: Vec<VolumeStatus> = database
         .get_system_status_volume_crit()
         .unwrap_or_default()
@@ -61,9 +61,14 @@ fn volumes(database: &State<Database>) -> Template {
             ),
         })
         .collect();
-    Template::render("system_status/volumes", context! { volumes })
+    Template::render("system_status/volumes", context! { volumes, user })
+}
+
+#[get("/<_..>", rank = 10)]
+fn catch_all() -> Redirect {
+    Redirect::to(uri!("/auth/login"))
 }
 
 pub fn routes() -> Vec<Route> {
-    routes![index, volumes]
+    routes![index, volumes, catch_all]
 }

@@ -1,9 +1,9 @@
-use rocket::{Route, State};
+use rocket::{Route, State, response::Redirect};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::database::Database;
+use crate::{database::Database, auth::User};
 
 use super::{display_util, ms_magic};
 
@@ -31,7 +31,7 @@ struct UserWithProfileCount {
 }
 
 #[get("/")]
-fn index(database: &State<Database>) -> Template {
+fn index(database: &State<Database>, user: User) -> Template {
     let profiles: Vec<UserWithProfileCount> = database
         .get_profiles()
         .unwrap_or(vec![])
@@ -43,11 +43,11 @@ fn index(database: &State<Database>) -> Template {
             count: p.count,
         })
         .collect();
-    Template::render("profiles", context! { profiles })
+    Template::render("profiles", context! { profiles, user })
 }
 
 #[get("/<sid>")]
-fn profile(database: &State<Database>, sid: String) -> Template {
+fn profile(database: &State<Database>, sid: String, user: User) -> Template {
     let profiles_result = database.get_profile_info(sid);
     if let Ok(profiles) = profiles_result {
         let profile: Vec<Profile> = profiles
@@ -83,12 +83,17 @@ fn profile(database: &State<Database>, sid: String) -> Template {
                 ),
             })
             .collect();
-        Template::render("profile", context! { profile })
+        Template::render("profile", context! { profile, user })
     } else {
         Template::render("profile", context! {})
     }
 }
 
+#[get("/<_..>", rank = 10)]
+fn catch_all() -> Redirect {
+    Redirect::to(uri!("/auth/login"))
+}
+
 pub fn routes() -> Vec<Route> {
-    routes![index, profile]
+    routes![index, profile, catch_all]
 }

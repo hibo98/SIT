@@ -27,7 +27,7 @@ fn no_auth_index() -> Redirect {
 
 #[get("/login")]
 fn login(_user: User) -> Redirect {
-    Redirect::to(uri!("/auth", index))
+    Redirect::to(uri!("/"))
 }
 
 #[get("/login", rank = 2)]
@@ -42,11 +42,11 @@ fn post_login(db: &State<Database>, jar: &CookieJar<'_>, login: Form<Login<'_>>)
         Redirect::to(uri!("/auth", login_page))
         // TODO: Add error cause "Invalid username/password."
     } else {
-        Redirect::to(uri!("/auth", index))
+        Redirect::to(uri!("/"))
     }
 }
 
-#[post("/logout")]
+#[get("/logout")]
 fn logout(db: &State<Database>, jar: &CookieJar<'_>) -> Flash<Redirect> {
     let _result = crate::auth::logout(db, jar);
     Flash::success(
@@ -55,6 +55,37 @@ fn logout(db: &State<Database>, jar: &CookieJar<'_>) -> Flash<Redirect> {
     )
 }
 
+#[get("/users")]
+fn users(db: &State<Database>, _user: User) -> Template {
+    Template::render("auth/users", context! {})
+}
+
+#[get("/users/new")]
+fn new_user(db: &State<Database>, _user: User) -> Template {
+    Template::render("auth/new_user", context! {})
+}
+
+#[post("/users/new", data = "<user>")]
+fn post_new_user(db: &State<Database>, user: Form<Login<'_>>, _guard: User) -> Redirect {
+    let result = crate::auth::create_new_user(db, user.username, user.password);
+    if result.is_err() {
+        Redirect::to(uri!("/auth", post_new_user))
+        // TODO: Add error cause
+    } else {
+        Redirect::to(uri!("/auth", users))
+    }
+}
+
 pub fn routes() -> Vec<Route> {
-    routes![index, no_auth_index, login, login_page, post_login, logout]
+    routes![
+        index,
+        no_auth_index,
+        login,
+        login_page,
+        post_login,
+        logout,
+        users,
+        new_user,
+        post_new_user,
+    ]
 }

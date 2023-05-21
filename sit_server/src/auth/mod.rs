@@ -10,11 +10,13 @@ use rocket::{
     time::OffsetDateTime,
     State,
 };
+use serde::Serialize;
 
 use crate::database::Database;
 
 const COOKIE_SESSION_ID: &str = "SIT_SESSION";
 
+#[derive(Serialize)]
 pub struct User {
     pub user_id: i32,
     pub username: String,
@@ -31,7 +33,7 @@ impl<'r> FromRequest<'r> for User {
                 if Utc::now()
                     .naive_utc()
                     .signed_duration_since(session.valid_until)
-                    .lt(&Duration::zero())
+                    .gt(&Duration::zero())
                 {
                     return Outcome::Forward(());
                 }

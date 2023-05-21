@@ -22,6 +22,11 @@ a:hover {
     border-bottom: 1px solid #222;
 }
 
+#top-header #user-info {
+    position: absolute;
+    right: 1em;
+}
+
 #top-logo {
     padding-left: 25px;
 }

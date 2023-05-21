@@ -1,22 +1,22 @@
-use rocket::{Route, State};
+use rocket::{response::Redirect, Route, State};
 use rocket_dyn_templates::{context, Template};
 
-use crate::database::Database;
+use crate::{database::Database, auth::User};
 
 #[get("/")]
-fn index(database: &State<Database>) -> Template {
+fn index(database: &State<Database>, user: User) -> Template {
     let software_info = database.get_software_list().unwrap_or(vec![]);
-    Template::render("software", context! { software: software_info })
+    Template::render("software", context! { software: software_info, user })
 }
 
 #[get("/<id>")]
-fn software(database: &State<Database>, id: i32) -> Template {
+fn software(database: &State<Database>, id: i32, user: User) -> Template {
     let software_info = database.get_software_info(id);
     let software_versions = database.get_software_versions(id);
     if let (Ok(software_info), Ok(software_versions)) = (software_info, software_versions) {
         Template::render(
             "software_info",
-            context! { software_info, software_versions },
+            context! { software_info, software_versions, user },
         )
     } else {
         Template::render("software_info", context! {})
@@ -24,13 +24,13 @@ fn software(database: &State<Database>, id: i32) -> Template {
 }
 
 #[get("/<id>/computer")]
-fn software_computer(database: &State<Database>, id: i32) -> Template {
+fn software_computer(database: &State<Database>, id: i32, user: User) -> Template {
     let software_info = database.get_software_info(id);
     let computer_list = database.get_software_computer_list(id);
     if let (Ok(software_info), Ok(computer_list)) = (software_info, computer_list) {
         Template::render(
             "software_computer_list",
-            context! { software_info, computer_list },
+            context! { software_info, computer_list, user },
         )
     } else {
         Template::render("software_computer_list", context! {})
@@ -38,7 +38,7 @@ fn software_computer(database: &State<Database>, id: i32) -> Template {
 }
 
 #[get("/version/<id>", rank = 0)]
-fn version(database: &State<Database>, id: i32) -> Template {
+fn version(database: &State<Database>, id: i32, user: User) -> Template {
     let software_version = database.get_software_version(id);
     if let Ok(software_version) = software_version {
         let software_info = database.get_software_info(software_version.software_id);
@@ -48,13 +48,18 @@ fn version(database: &State<Database>, id: i32) -> Template {
         {
             return Template::render(
                 "software_version",
-                context! { software_info, software_version, software_versions_list },
+                context! { software_info, software_version, software_versions_list, user },
             );
         }
     }
     Template::render("software_version", context! {})
 }
 
+#[get("/<_..>", rank = 10)]
+fn catch_all() -> Redirect {
+    Redirect::to(uri!("/auth/login"))
+}
+
 pub fn routes() -> Vec<Route> {
-    routes![index, software, software_computer, version,]
+    routes![index, software, software_computer, version, catch_all]
 }
