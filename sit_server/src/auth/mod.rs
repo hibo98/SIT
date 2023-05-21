@@ -137,7 +137,7 @@ fn get_new_session_id(db: &Database) -> String {
 fn generate_session_id() -> String {
     thread_rng()
         .sample_iter(&Alphanumeric)
-        .take(32)
+        .take(128)
         .map(|c| c as char)
         .collect()
 }
