@@ -1,15 +1,14 @@
 #[macro_use]
 extern crate windows_service;
 
-use std::path::PathBuf;
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
-use std::{env, thread};
+use std::thread;
 
 use anyhow::Result;
 use clap::builder::NonEmptyStringValueParser;
-use clap::{arg, value_parser, ArgAction, Command};
+use clap::{arg, ArgAction, Command};
 use job_scheduler_ng::{Job, JobScheduler};
 use wmi::{COMLibrary, WMIConnection};
 
@@ -101,17 +100,6 @@ fn cli() -> Command {
             ),
         )
         .subcommand(
-            Command::new("install-service")
-                .about("Installs windows service, if already installed updates configuration")
-                .arg(
-                    arg!(-p --path <PATH> "Path to the executable")
-                        .value_parser(value_parser!(PathBuf)),
-                ),
-        )
-        .subcommand(Command::new("uninstall-service").about("Uninstalls windows service"))
-        .subcommand(Command::new("start-service").about("Start windows service"))
-        .subcommand(Command::new("stop-service").about("Stop windows service"))
-        .subcommand(
             Command::new("debug")
                 .about("Executes functions for debug reasons")
                 .arg(
@@ -138,23 +126,6 @@ fn main() -> Result<()> {
             } else {
                 internal_main(None)?;
             }
-        }
-        Some(("install-service", sub_matches)) => {
-            let path = sub_matches.get_one::<PathBuf>("path");
-            if let Some(path) = path {
-                service_mgmt::install_service(path)?;
-            } else {
-                service_mgmt::install_service(&env::current_exe()?)?;
-            }
-        }
-        Some(("uninstall-service", _)) => {
-            service_mgmt::uninstall_service()?;
-        }
-        Some(("start-service", _)) => {
-            service_mgmt::start_service()?;
-        }
-        Some(("stop-service", _)) => {
-            service_mgmt::stop_service()?;
         }
         Some(("debug", sub_matches)) => {
             let com_con = COMLibrary::new()?;
