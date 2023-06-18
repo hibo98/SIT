@@ -5,6 +5,7 @@ members = [
     "sit_lib",
     "sit_server",
 ]
+resolver = "1"
 
 [profile.release]
 lto = true
