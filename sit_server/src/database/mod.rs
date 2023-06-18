@@ -970,6 +970,11 @@ impl Database {
             .get_result(&mut conn)?)
     }
 
+    pub fn get_auth_users(&self) -> Result<Vec<AuthUser>> {
+        let mut conn = self.pool.get()?;
+        Ok(auth_user::table.order_by(auth_user::username).load::<AuthUser>(&mut conn)?)
+    }
+
     pub fn get_auth_user_by_username(&self, username: &str) -> Result<AuthUser> {
         let mut conn = self.pool.get()?;
         Ok(auth_user::table

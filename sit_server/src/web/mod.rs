@@ -5,5 +5,6 @@ mod display_util;
 pub mod hardware;
 mod ms_magic;
 pub mod profile;
+pub mod settings;
 pub mod software;
 pub mod system_status;

@@ -33,6 +33,7 @@ async fn main() -> Result<(), rocket::Error> {
         .mount("/clients/", web::clients::routes())
         .mount("/hardware/", web::hardware::routes())
         .mount("/profile/", web::profile::routes())
+        .mount("/settings/", web::settings::routes())
         .mount("/software/", web::software::routes())
         .mount("/static", FileServer::from("static"))
         .mount("/system-status", web::system_status::routes())

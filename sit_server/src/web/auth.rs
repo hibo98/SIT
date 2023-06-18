@@ -55,27 +55,6 @@ fn logout(db: &State<Database>, jar: &CookieJar<'_>) -> Flash<Redirect> {
     )
 }
 
-#[get("/users")]
-fn users(db: &State<Database>, _user: User) -> Template {
-    Template::render("auth/users", context! {})
-}
-
-#[get("/users/new")]
-fn new_user(db: &State<Database>, _user: User) -> Template {
-    Template::render("auth/new_user", context! {})
-}
-
-#[post("/users/new", data = "<user>")]
-fn post_new_user(db: &State<Database>, user: Form<Login<'_>>, _guard: User) -> Redirect {
-    let result = crate::auth::create_new_user(db, user.username, user.password);
-    if result.is_err() {
-        Redirect::to(uri!("/auth", post_new_user))
-        // TODO: Add error cause
-    } else {
-        Redirect::to(uri!("/auth", users))
-    }
-}
-
 pub fn routes() -> Vec<Route> {
     routes![
         index,
@@ -84,8 +63,5 @@ pub fn routes() -> Vec<Route> {
         login_page,
         post_login,
         logout,
-        users,
-        new_user,
-        post_new_user,
     ]
 }
