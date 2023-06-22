@@ -14,8 +14,8 @@
         <tbody>
         {{#each software}}
             <tr>
-                <td><a href="/software/{{this.[2].[1].id}}">{{this.[2].[1].name}}</a></td>
-                <td><a href="/software/version/{{this.[2].[0].id}}">{{this.[2].[0].version}}</a></td>
+                <td><a href="/software/software/{{this.[2].[1].id}}">{{this.[2].[1].name}}</a></td>
+                <td><a href="/software/software/0/version/{{this.[2].[0].id}}">{{this.[2].[0].version}}</a></td>
                 <td>{{this.[2].[1].publisher}}</td>
             </tr>
         {{/each}}

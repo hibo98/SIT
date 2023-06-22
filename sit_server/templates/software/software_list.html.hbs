@@ -1,0 +1,23 @@
+{{> _layout_software-top title="Software"}}
+<div class="software-table">
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Hersteller</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each software}}
+            <tr>
+                <td><a href="/software/software/{{this.id}}">{{this.name}}</a></td>
+                <td>{{this.publisher}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_software-bottom}}

@@ -43,7 +43,7 @@ fn index(database: &State<Database>, user: User) -> Template {
             count: p.count,
         })
         .collect();
-    Template::render("profiles", context! { profiles, user })
+    Template::render("profile/index", context! { profiles, user })
 }
 
 #[get("/<sid>")]
@@ -83,9 +83,9 @@ fn profile(database: &State<Database>, sid: String, user: User) -> Template {
                 ),
             })
             .collect();
-        Template::render("profile", context! { profile, user })
+        Template::render("profile/profile", context! { profile, user })
     } else {
-        Template::render("profile", context! {})
+        Template::render("profile/profile", context! {})
     }
 }
 

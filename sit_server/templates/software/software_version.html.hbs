@@ -1,7 +1,8 @@
-{{> main-top title="Software"}}
+{{> _layout_software-top title="Software"}}
 <div class="software-table">
     <h1>{{software_info.name}}</h1>
     <p>Publisher: {{software_info.publisher}}
+    <p>Version: {{software_version.version}}
     <div class="filters">
 
     </div>
@@ -9,17 +10,15 @@
         <thead>
             <tr>
                 <th>Computer</th>
-                <th>Version</th>
             </tr>
         </thead>
         <tbody>
-        {{#each computer_list}}
+        {{#each software_versions_list}}
             <tr>
-                <td><a href="/clients/{{this.[2].[0].uuid}}">{{this.[2].[1].computer_name}}.{{this.[2].[1].domain}}</a></td>
-                <td><a href="/software/version/{{this.[1].id}}">{{this.[1].version}}</a></td>
+                <td><a href="/clients/{{this.[0].uuid}}">{{this.[1].computer_name}}.{{this.[1].domain}}</a></td>
             </tr>
         {{/each}}
         </tbody>
     </table>
 </div>
-{{> main-bottom}}
+{{> _layout_software-bottom}}

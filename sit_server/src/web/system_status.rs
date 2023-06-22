@@ -27,7 +27,7 @@ fn index(database: &State<Database>, user: User) -> Template {
         .get_system_status_volume_crit()
         .unwrap_or_default()
         .len();
-    Template::render("system_status", context! { crit_volume, user })
+    Template::render("system_status/index", context! { crit_volume, user })
 }
 
 #[get("/volumes")]

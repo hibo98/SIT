@@ -1,4 +1,4 @@
-{{> main-top title="Software-Info" }}
+{{> _layout_software-top title="Software-Info" }}
 <div class="software-table">
     <h1>{{software_info.name}}</h1>
     <p>Publisher: {{software_info.publisher}}
@@ -15,11 +15,11 @@
         <tbody>
         {{#each software_versions}}
             <tr>
-                <td><a href="/software/version/{{this.id}}">{{this.version}}</a></td>
+                <td><a href="/software/software/0/version/{{this.id}}">{{this.version}}</a></td>
                 <td>{{this.count}}</td>
             </tr>
         {{/each}}
         </tbody>
     </table>
 </div>
-{{> main-bottom}}
+{{> _layout_software-bottom}}

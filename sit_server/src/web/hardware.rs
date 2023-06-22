@@ -61,7 +61,7 @@ struct NetworkAdapterCount {
 
 #[get("/")]
 fn index(user: User) -> Template {
-    Template::render("hardware", context! { user })
+    Template::render("hardware/index", context! { user })
 }
 
 #[get("/processors")]

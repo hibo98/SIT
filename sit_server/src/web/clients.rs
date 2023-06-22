@@ -64,7 +64,7 @@ struct UserProfilePaths {
 #[get("/")]
 fn index(database: &State<Database>, user: User) -> Template {
     let client_info = database.get_clients_with_os_info().unwrap_or(vec![]);
-    Template::render("clients", context! { clients: client_info, user })
+    Template::render("clients/index", context! { clients: client_info, user })
 }
 
 #[get("/<uuid>")]
@@ -72,9 +72,9 @@ fn client(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
-        Template::render("client", context! { client, os_info, user })
+        Template::render("clients/client", context! { client, os_info, user })
     } else {
-        Template::render("client", context! {})
+        Template::render("clients/client", context! {})
     }
 }
 
