@@ -63,6 +63,24 @@ fn software_version(database: &State<Database>, id: i32, user: User) -> Template
     Template::render("software/software_version", context! {})
 }
 
+#[get("/license")]
+fn license_list(database: &State<Database>, user: User) -> Template {
+    let license_info = database.get_license_list().unwrap_or(vec![]);
+    Template::render(
+        "software/license_list",
+        context! { license: license_info, user },
+    )
+}
+
+#[get("/license/<name>")]
+fn license_computer(database: &State<Database>, name: String,  user: User) -> Template {
+    let license_info = database.get_license_with_computers(&name).unwrap_or(vec![]);
+    Template::render(
+        "software/license_computer",
+        context! { license: license_info, user },
+    )
+}
+
 #[get("/<_..>", rank = 10)]
 fn catch_all() -> Redirect {
     Redirect::to(uri!("/auth/login"))
@@ -75,6 +93,8 @@ pub fn routes() -> Vec<Route> {
         software,
         software_computer,
         software_version,
+        license_list,
+        license_computer,
         catch_all
     ]
 }

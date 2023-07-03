@@ -377,6 +377,12 @@ pub struct LicenseKey {
     pub key: String,
 }
 
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct LicenseKeyCount {
+    pub name: String,
+    pub count: i64,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = license_key)]
 pub struct NewLicenseKey<'a> {

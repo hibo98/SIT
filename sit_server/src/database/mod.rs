@@ -555,6 +555,26 @@ impl Database {
             .load::<(Client, OsInfo)>(&mut conn)?)
     }
 
+    pub fn get_license_list(&self) -> Result<Vec<LicenseKeyCount>> {
+        let mut conn = self.pool.get()?;
+        Ok(license_key::table
+            .group_by(license_key::name)
+            .select((license_key::name, count_star()))
+            .load::<LicenseKeyCount>(&mut conn)?)
+    }
+
+    pub fn get_license_with_computers(
+        &self,
+        name: &String,
+    ) -> Result<Vec<(LicenseKey, (Client, OsInfo))>> {
+        let mut conn = self.pool.get()?;
+        Ok(license_key::table
+            .filter(license_key::name.eq(name))
+            .inner_join(client::table.inner_join(os_info::table))
+            .order_by(os_info::computer_name)
+            .load::<(LicenseKey, (Client, OsInfo))>(&mut conn)?)
+    }
+
     pub fn get_client_os_info(&self, uuid: &Uuid) -> Result<OsInfo> {
         let mut conn = self.pool.get()?;
         Ok(os_info::table
@@ -972,7 +992,9 @@ impl Database {
 
     pub fn get_auth_users(&self) -> Result<Vec<AuthUser>> {
         let mut conn = self.pool.get()?;
-        Ok(auth_user::table.order_by(auth_user::username).load::<AuthUser>(&mut conn)?)
+        Ok(auth_user::table
+            .order_by(auth_user::username)
+            .load::<AuthUser>(&mut conn)?)
     }
 
     pub fn get_auth_user_by_username(&self, username: &str) -> Result<AuthUser> {

@@ -1,0 +1,21 @@
+{{> _layout_software-top title="Software"}}
+<h1>{{license.[0].[0].name}}</h1>
+<div class="licnese-table">
+    <table>
+        <thead>
+        <tr>
+            <th>Computer</th>
+            <th>Lizenzschlüssel</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each license}}
+            <tr>
+                <td><a href="/clients/{{this.[1].[0].uuid}}">{{this.[1].[1].computer_name}}.{{this.[1].[1].domain}}</a></td>
+                <td>{{this.[0].key}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_software-bottom}}
