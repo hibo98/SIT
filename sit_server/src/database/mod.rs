@@ -241,20 +241,32 @@ impl Database {
         let mut conn = self.pool.get()?;
         conn.transaction::<(), diesel::result::Error, _>(|c| {
             for p in profiles.profiles {
-                let user: User = diesel::insert_into(user::table)
-                    .values(NewUser {
-                        sid: &p.sid,
-                        username: p.username.as_ref(),
-                    })
-                    .on_conflict(user::sid)
-                    .do_update()
-                    .set(user::username.eq(p.username.as_ref()))
-                    .get_result(c)?;
+                let db_user: Option<User> = user::table
+                    .filter(user::sid.eq(&p.sid))
+                    .first(c)
+                    .optional()?;
+                let user_id = if let Some(db_user) = db_user {
+                    if let Some(username) = &p.username {
+                        diesel::update(user::table)
+                            .set(user::username.eq(username))
+                            .filter(user::sid.eq(&p.sid))
+                            .execute(c)?;
+                    }
+                    db_user.id
+                } else {
+                    let user: User = diesel::insert_into(user::table)
+                        .values(NewUser {
+                            sid: &p.sid,
+                            username: p.username.as_ref(),
+                        })
+                        .get_result(c)?;
+                    user.id
+                };
                 if p.size.is_some() {
                     diesel::insert_into(userprofile::table)
                         .values(NewUserProfileWithSize {
                             client_id: &client_id,
-                            user_id: &user.id,
+                            user_id: &user_id,
                             health_status: &(p.health_status as i16),
                             roaming_configured: &p.roaming_configured,
                             roaming_path: p.roaming_path.as_ref(),
@@ -285,7 +297,7 @@ impl Database {
                     diesel::insert_into(userprofile::table)
                         .values(NewUserProfileWithoutSize {
                             client_id: &client_id,
-                            user_id: &user.id,
+                            user_id: &user_id,
                             health_status: &(p.health_status as i16),
                             roaming_configured: &p.roaming_configured,
                             roaming_path: p.roaming_path.as_ref(),
@@ -315,7 +327,7 @@ impl Database {
                     for p in path_size {
                         let path: Result<UserProfilePaths, _> = userprofile_paths::table
                             .filter(userprofile_paths::client_id.eq(&client_id))
-                            .filter(userprofile_paths::user_id.eq(&user.id))
+                            .filter(userprofile_paths::user_id.eq(&user_id))
                             .filter(userprofile_paths::path.eq(&p.path))
                             .get_result(c);
 
@@ -328,7 +340,7 @@ impl Database {
                             diesel::insert_into(userprofile_paths::table)
                                 .values(NewUserProfilePaths {
                                     client_id: &client_id,
-                                    user_id: &user.id,
+                                    user_id: &user_id,
                                     path: &p.path,
                                     size: BigDecimal::from(p.size),
                                 })
@@ -517,6 +529,7 @@ impl Database {
                 ),
             ))
             .filter(software_version::software_id.eq(software_id))
+            .order_by(software_version::version)
             .load::<SoftwareVersionWithCount>(&mut conn)?)
     }
 
