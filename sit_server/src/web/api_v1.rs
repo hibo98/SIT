@@ -132,7 +132,7 @@ async fn profiles(
     input: Json<UserProfiles>,
 ) -> status::Custom<()> {
     match database.get_client(&uuid) {
-        Ok(client) => match database.update_profiles(client.id, input.0) {
+        Ok(client) => match database.user_manager().update_profiles(client.id, input.0) {
             Ok(_) => status::Custom(Status::Ok, ()),
             Err(error) => {
                 println!(

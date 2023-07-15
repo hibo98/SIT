@@ -14,7 +14,7 @@ use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dotenv::dotenv;
 use sit_lib::hardware::HardwareInfo;
 use sit_lib::licenses::LicenseBundle;
-use sit_lib::os::{UserProfiles, WinOsInfo};
+use sit_lib::os::WinOsInfo;
 use sit_lib::software::SoftwareLibrary;
 use sit_lib::system_status::VolumeList;
 use uuid::Uuid;
@@ -22,6 +22,9 @@ use uuid::Uuid;
 use crate::database::model::*;
 use crate::database::schema::*;
 
+use self::domain_user::UserManager;
+
+mod domain_user;
 mod model;
 mod schema;
 
@@ -31,6 +34,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 pub struct Database {
     pool: Pool<ConnectionManager<PgConnection>>,
+    user_manager: UserManager,
 }
 
 impl Database {
@@ -51,7 +55,14 @@ impl Database {
             .build(manager)
             .expect("Could not build connection pool");
 
-        Database { pool }
+        Database {
+            pool: pool.clone(),
+            user_manager: UserManager::new(pool),
+        }
+    }
+
+    pub fn user_manager(&self) -> &UserManager {
+        &self.user_manager
     }
 
     pub fn create_client(&self, uuid: &Uuid) -> Result<Client> {
@@ -231,123 +242,6 @@ impl Database {
                         software_id: &s.id,
                     })
                     .execute(c)?;
-            }
-            Ok(())
-        })?;
-        Ok(())
-    }
-
-    pub fn update_profiles(&self, client_id: i32, profiles: UserProfiles) -> Result<()> {
-        let mut conn = self.pool.get()?;
-        conn.transaction::<(), diesel::result::Error, _>(|c| {
-            for p in profiles.profiles {
-                let db_user: Option<User> = user::table
-                    .filter(user::sid.eq(&p.sid))
-                    .first(c)
-                    .optional()?;
-                let user_id = if let Some(db_user) = db_user {
-                    if let Some(username) = &p.username {
-                        diesel::update(user::table)
-                            .set(user::username.eq(username))
-                            .filter(user::sid.eq(&p.sid))
-                            .execute(c)?;
-                    }
-                    db_user.id
-                } else {
-                    let user: User = diesel::insert_into(user::table)
-                        .values(NewUser {
-                            sid: &p.sid,
-                            username: p.username.as_ref(),
-                        })
-                        .get_result(c)?;
-                    user.id
-                };
-                if p.size.is_some() {
-                    diesel::insert_into(userprofile::table)
-                        .values(NewUserProfileWithSize {
-                            client_id: &client_id,
-                            user_id: &user_id,
-                            health_status: &(p.health_status as i16),
-                            roaming_configured: &p.roaming_configured,
-                            roaming_path: p.roaming_path.as_ref(),
-                            roaming_preference: p.roaming_preference.as_ref(),
-                            last_use_time: &p.last_use_time.naive_utc(),
-                            last_download_time: p.last_download_time.map(|t| t.naive_utc()),
-                            last_upload_time: p.last_upload_time.map(|t| t.naive_utc()),
-                            status: &(p.status as i64),
-                            size: p.size.map(BigDecimal::from),
-                        })
-                        .on_conflict((userprofile::client_id, userprofile::user_id))
-                        .do_update()
-                        .set((
-                            userprofile::health_status.eq(&(p.health_status as i16)),
-                            userprofile::roaming_configured.eq(&p.roaming_configured),
-                            userprofile::roaming_path.eq(p.roaming_path.as_ref()),
-                            userprofile::roaming_preference.eq(p.roaming_preference.as_ref()),
-                            userprofile::last_use_time.eq(&p.last_use_time.naive_utc()),
-                            userprofile::last_download_time
-                                .eq(p.last_download_time.map(|t| t.naive_utc())),
-                            userprofile::last_upload_time
-                                .eq(p.last_upload_time.map(|t| t.naive_utc())),
-                            userprofile::status.eq(&(p.status as i64)),
-                            userprofile::size.eq(p.size.map(BigDecimal::from)),
-                        ))
-                        .execute(c)?;
-                } else {
-                    diesel::insert_into(userprofile::table)
-                        .values(NewUserProfileWithoutSize {
-                            client_id: &client_id,
-                            user_id: &user_id,
-                            health_status: &(p.health_status as i16),
-                            roaming_configured: &p.roaming_configured,
-                            roaming_path: p.roaming_path.as_ref(),
-                            roaming_preference: p.roaming_preference.as_ref(),
-                            last_use_time: &p.last_use_time.naive_utc(),
-                            last_download_time: p.last_download_time.map(|t| t.naive_utc()),
-                            last_upload_time: p.last_upload_time.map(|t| t.naive_utc()),
-                            status: &(p.status as i64),
-                        })
-                        .on_conflict((userprofile::client_id, userprofile::user_id))
-                        .do_update()
-                        .set((
-                            userprofile::health_status.eq(&(p.health_status as i16)),
-                            userprofile::roaming_configured.eq(&p.roaming_configured),
-                            userprofile::roaming_path.eq(p.roaming_path.as_ref()),
-                            userprofile::roaming_preference.eq(p.roaming_preference.as_ref()),
-                            userprofile::last_use_time.eq(&p.last_use_time.naive_utc()),
-                            userprofile::last_download_time
-                                .eq(p.last_download_time.map(|t| t.naive_utc())),
-                            userprofile::last_upload_time
-                                .eq(p.last_upload_time.map(|t| t.naive_utc())),
-                            userprofile::status.eq(&(p.status as i64)),
-                        ))
-                        .execute(c)?;
-                }
-                if let Some(path_size) = p.path_size {
-                    for p in path_size {
-                        let path: Result<UserProfilePaths, _> = userprofile_paths::table
-                            .filter(userprofile_paths::client_id.eq(&client_id))
-                            .filter(userprofile_paths::user_id.eq(&user_id))
-                            .filter(userprofile_paths::path.eq(&p.path))
-                            .get_result(c);
-
-                        if let Ok(path) = path {
-                            diesel::update(userprofile_paths::table)
-                                .set(userprofile_paths::size.eq(BigDecimal::from(p.size)))
-                                .filter(userprofile_paths::id.eq(path.id))
-                                .execute(c)?;
-                        } else {
-                            diesel::insert_into(userprofile_paths::table)
-                                .values(NewUserProfilePaths {
-                                    client_id: &client_id,
-                                    user_id: &user_id,
-                                    path: &p.path,
-                                    size: BigDecimal::from(p.size),
-                                })
-                                .execute(c)?;
-                        }
-                    }
-                }
             }
             Ok(())
         })?;
@@ -614,32 +508,6 @@ impl Database {
             .load::<(UserProfile, User)>(&mut conn)?)
     }
 
-    pub fn get_user(&self, sid: &String) -> Result<User> {
-        let mut conn = self.pool.get()?;
-        Ok(user::table
-            .filter(user::sid.eq(sid))
-            .get_result(&mut conn)?)
-    }
-
-    pub fn get_profile_paths(&self, uuid: &Uuid, sid: &String) -> Result<Vec<UserProfilePaths>> {
-        let mut conn = self.pool.get()?;
-        Ok(userprofile_paths::table
-            .filter(
-                userprofile_paths::client_id.nullable().eq(client::table
-                    .select(client::id)
-                    .filter(client::uuid.eq(uuid))
-                    .single_value()),
-            )
-            .filter(
-                userprofile_paths::user_id.nullable().eq(user::table
-                    .select(user::id)
-                    .filter(user::sid.eq(sid))
-                    .single_value()),
-            )
-            .order_by(userprofile_paths::path)
-            .load::<UserProfilePaths>(&mut conn)?)
-    }
-
     pub fn get_client_software(
         &self,
         uuid: Uuid,
@@ -653,38 +521,6 @@ impl Database {
                 .order_by(software_info::name)
                 .load::<(SoftwareList, Client, (SoftwareVersion, SoftwareInfo))>(&mut conn)?;
         Ok(software_version_list)
-    }
-
-    pub fn get_profiles(&self) -> Result<Vec<UserWithProfileCount>> {
-        let mut conn = self.pool.get()?;
-        Ok(user::table
-            .select((
-                user::id,
-                user::sid,
-                user::username,
-                coalesce(
-                    userprofile::table
-                        .filter(userprofile::user_id.eq(user::id))
-                        .count()
-                        .single_value(),
-                    0,
-                ),
-            ))
-            .order_by(user::username)
-            .load::<UserWithProfileCount>(&mut conn)?)
-    }
-
-    pub fn get_profile_info(
-        &self,
-        sid: String,
-    ) -> Result<Vec<(UserProfile, User, Client, Option<OsInfo>)>> {
-        let mut conn = self.pool.get()?;
-        Ok(userprofile::table
-            .filter(user::sid.eq(sid))
-            .inner_join(user::table)
-            .inner_join(client::table)
-            .left_join(os_info::table.on(os_info::client_id.eq(userprofile::client_id)))
-            .load::<(UserProfile, User, Client, Option<OsInfo>)>(&mut conn)?)
     }
 
     pub fn get_processors_count(&self) -> Result<Vec<ProcessorCount>> {

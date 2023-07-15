@@ -1,9 +1,9 @@
-use rocket::{Route, State, response::Redirect};
+use rocket::{response::Redirect, Route, State};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{database::Database, auth::User};
+use crate::{auth::User, database::Database};
 
 use super::{display_util, ms_magic};
 
@@ -109,7 +109,10 @@ fn profiles(database: &State<Database>, uuid: Uuid, user: User) -> Template {
                 ),
             })
             .collect();
-        Template::render("clients/profiles", context! { profiles, client, os_info, user })
+        Template::render(
+            "clients/profiles",
+            context! { profiles, client, os_info, user },
+        )
     } else {
         Template::render("clients/profiles", context! {})
     }
@@ -119,8 +122,8 @@ fn profiles(database: &State<Database>, uuid: Uuid, user: User) -> Template {
 fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
-    let computer_user = database.get_user(&sid);
-    let profile_paths = database.get_profile_paths(&uuid, &sid);
+    let computer_user = database.user_manager().get_user(&sid);
+    let profile_paths = database.user_manager().get_profile_paths(&uuid, &sid);
     if let (Ok(client), Ok(os_info), Ok(computer_user), Ok(profile_paths)) =
         (client, os_info, computer_user, profile_paths)
     {
@@ -146,7 +149,10 @@ fn software(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let os_info = database.get_client_os_info(&uuid);
     let software = database.get_client_software(uuid);
     if let (Ok(client), Ok(os_info), Ok(software)) = (client, os_info, software) {
-        Template::render("clients/software", context! { software, client, os_info, user })
+        Template::render(
+            "clients/software",
+            context! { software, client, os_info, user },
+        )
     } else {
         Template::render("clients/software", context! {})
     }
@@ -242,7 +248,10 @@ fn status(database: &State<Database>, uuid: Uuid, user: User) -> Template {
                 ),
             })
             .collect();
-        Template::render("clients/status", context! { volumes, client, os_info, user })
+        Template::render(
+            "clients/status",
+            context! { volumes, client, os_info, user },
+        )
     } else {
         Template::render("clients/status", context! {})
     }
@@ -254,7 +263,10 @@ fn licenses(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
         let licenses = database.get_client_licenses(uuid).unwrap_or(vec![]);
-        Template::render("clients/licenses", context! { licenses, client, os_info, user })
+        Template::render(
+            "clients/licenses",
+            context! { licenses, client, os_info, user },
+        )
     } else {
         Template::render("clients/licenses", context! {})
     }

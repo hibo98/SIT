@@ -1,9 +1,9 @@
-use rocket::{Route, State, response::Redirect};
+use rocket::{response::Redirect, Route, State};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{database::Database, auth::User};
+use crate::{auth::User, database::Database};
 
 use super::{display_util, ms_magic};
 
@@ -33,6 +33,7 @@ struct UserWithProfileCount {
 #[get("/")]
 fn index(database: &State<Database>, user: User) -> Template {
     let profiles: Vec<UserWithProfileCount> = database
+        .user_manager()
         .get_profiles()
         .unwrap_or(vec![])
         .into_iter()
@@ -48,7 +49,7 @@ fn index(database: &State<Database>, user: User) -> Template {
 
 #[get("/<sid>")]
 fn profile(database: &State<Database>, sid: String, user: User) -> Template {
-    let profiles_result = database.get_profile_info(sid);
+    let profiles_result = database.user_manager().get_profile_info(sid);
     if let Ok(profiles) = profiles_result {
         let profile: Vec<Profile> = profiles
             .into_iter()
