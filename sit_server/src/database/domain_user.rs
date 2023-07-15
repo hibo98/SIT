@@ -266,6 +266,8 @@ impl UserManager {
                         userprofile::status.eq(&(p.status as i64)),
                         userprofile::size.eq(p.size.map(BigDecimal::from)),
                     ))
+                    .filter(userprofile::client_id.eq(client_id))
+                    .filter(userprofile::user_id.eq(user_id))
                     .execute(c)?;
                 if let Some(path_size) = p.path_size.as_ref() {
                     for p in path_size {
