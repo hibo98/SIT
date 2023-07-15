@@ -252,23 +252,42 @@ impl UserManager {
             }
 
             for (user_id, p) in to_update {
-                diesel::update(userprofile::table)
-                    .set((
-                        userprofile::health_status.eq(&(p.health_status as i16)),
-                        userprofile::roaming_configured.eq(&p.roaming_configured),
-                        userprofile::roaming_path.eq(p.roaming_path.as_ref()),
-                        userprofile::roaming_preference.eq(p.roaming_preference.as_ref()),
-                        userprofile::last_use_time.eq(&p.last_use_time.naive_utc()),
-                        userprofile::last_download_time
-                            .eq(p.last_download_time.map(|t| t.naive_utc())),
-                        userprofile::last_upload_time
-                            .eq(p.last_upload_time.map(|t| t.naive_utc())),
-                        userprofile::status.eq(&(p.status as i64)),
-                        userprofile::size.eq(p.size.map(BigDecimal::from)),
-                    ))
-                    .filter(userprofile::client_id.eq(client_id))
-                    .filter(userprofile::user_id.eq(user_id))
-                    .execute(c)?;
+                if p.size.is_some() {
+                    diesel::update(userprofile::table)
+                        .set((
+                            userprofile::health_status.eq(&(p.health_status as i16)),
+                            userprofile::roaming_configured.eq(&p.roaming_configured),
+                            userprofile::roaming_path.eq(p.roaming_path.as_ref()),
+                            userprofile::roaming_preference.eq(p.roaming_preference.as_ref()),
+                            userprofile::last_use_time.eq(&p.last_use_time.naive_utc()),
+                            userprofile::last_download_time
+                                .eq(p.last_download_time.map(|t| t.naive_utc())),
+                            userprofile::last_upload_time
+                                .eq(p.last_upload_time.map(|t| t.naive_utc())),
+                            userprofile::status.eq(&(p.status as i64)),
+                            userprofile::size.eq(p.size.map(BigDecimal::from)),
+                        ))
+                        .filter(userprofile::client_id.eq(client_id))
+                        .filter(userprofile::user_id.eq(user_id))
+                        .execute(c)?;
+                } else {
+                    diesel::update(userprofile::table)
+                        .set((
+                            userprofile::health_status.eq(&(p.health_status as i16)),
+                            userprofile::roaming_configured.eq(&p.roaming_configured),
+                            userprofile::roaming_path.eq(p.roaming_path.as_ref()),
+                            userprofile::roaming_preference.eq(p.roaming_preference.as_ref()),
+                            userprofile::last_use_time.eq(&p.last_use_time.naive_utc()),
+                            userprofile::last_download_time
+                                .eq(p.last_download_time.map(|t| t.naive_utc())),
+                            userprofile::last_upload_time
+                                .eq(p.last_upload_time.map(|t| t.naive_utc())),
+                            userprofile::status.eq(&(p.status as i64)),
+                        ))
+                        .filter(userprofile::client_id.eq(client_id))
+                        .filter(userprofile::user_id.eq(user_id))
+                        .execute(c)?;
+                }
                 if let Some(path_size) = p.path_size.as_ref() {
                     for p in path_size {
                         let path: Result<UserProfilePaths, _> = userprofile_paths::table
