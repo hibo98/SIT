@@ -1,9 +1,9 @@
-use rocket::{Route, State, response::Redirect};
+use rocket::{response::Redirect, Route, State};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{database::Database, auth::User};
+use crate::{auth::User, database::Database};
 
 use super::display_util;
 

@@ -56,12 +56,5 @@ fn logout(db: &State<Database>, jar: &CookieJar<'_>) -> Flash<Redirect> {
 }
 
 pub fn routes() -> Vec<Route> {
-    routes![
-        index,
-        no_auth_index,
-        login,
-        login_page,
-        post_login,
-        logout,
-    ]
+    routes![index, no_auth_index, login, login_page, post_login, logout,]
 }

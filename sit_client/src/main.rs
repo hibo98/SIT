@@ -3,8 +3,8 @@ extern crate windows_service;
 
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
-use std::time::Duration;
 use std::thread;
+use std::time::Duration;
 
 use anyhow::Result;
 use clap::builder::NonEmptyStringValueParser;

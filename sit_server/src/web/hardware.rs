@@ -1,9 +1,9 @@
 use bigdecimal::ToPrimitive;
-use rocket::{Route, State, response::Redirect};
+use rocket::{response::Redirect, Route, State};
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
 
-use crate::{database::Database, auth::User};
+use crate::{auth::User, database::Database};
 
 use super::display_util;
 
@@ -152,7 +152,10 @@ fn graphics_cards(database: &State<Database>, user: User) -> Template {
 #[get("/graphics_cards/<card>")]
 fn graphics_card_clients(database: &State<Database>, card: String, user: User) -> Template {
     let clients = database.get_graphics_card_clients(&card).unwrap_or(vec![]);
-    Template::render("hardware/clients", context! { clients, headline: card, user })
+    Template::render(
+        "hardware/clients",
+        context! { clients, headline: card, user },
+    )
 }
 
 #[get("/disks")]
@@ -212,7 +215,12 @@ fn models(database: &State<Database>, user: User) -> Template {
 }
 
 #[get("/models/<manufacturer>/<model>")]
-fn model_clients(database: &State<Database>, manufacturer: String, model: String, user: User) -> Template {
+fn model_clients(
+    database: &State<Database>,
+    manufacturer: String,
+    model: String,
+    user: User,
+) -> Template {
     let clients = database
         .get_computer_model_clients(&model, &manufacturer)
         .unwrap_or(vec![]);
@@ -234,7 +242,10 @@ fn network_adapters(database: &State<Database>, user: User) -> Template {
                 count: na.count,
             })
             .collect();
-        Template::render("hardware/network_adapters", context! { network_adapters, user })
+        Template::render(
+            "hardware/network_adapters",
+            context! { network_adapters, user },
+        )
     } else {
         Template::render("hardware/network_adapters", context! {})
     }
@@ -245,7 +256,10 @@ fn network_adapter_clients(database: &State<Database>, name: String, user: User)
     let clients = database
         .get_network_adapter_clients(&name)
         .unwrap_or(vec![]);
-    Template::render("hardware/clients", context! { clients, headline: name, user })
+    Template::render(
+        "hardware/clients",
+        context! { clients, headline: name, user },
+    )
 }
 
 #[get("/<_..>", rank = 10)]

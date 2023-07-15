@@ -73,7 +73,7 @@ fn license_list(database: &State<Database>, user: User) -> Template {
 }
 
 #[get("/license/<name>")]
-fn license_computer(database: &State<Database>, name: String,  user: User) -> Template {
+fn license_computer(database: &State<Database>, name: String, user: User) -> Template {
     let license_info = database.get_license_with_computers(&name).unwrap_or(vec![]);
     Template::render(
         "software/license_computer",

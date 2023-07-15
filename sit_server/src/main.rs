@@ -6,7 +6,7 @@ extern crate rocket;
 use rocket::{fs::FileServer, response::Redirect};
 use rocket_dyn_templates::{context, Template};
 
-use crate::{database::Database, auth::User};
+use crate::{auth::User, database::Database};
 
 mod auth;
 mod database;
