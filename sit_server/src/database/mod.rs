@@ -229,7 +229,7 @@ impl Database {
             .software
             .iter()
             .map(|e| self.get_software_entry(&e.name, &e.version, e.publisher.clone()))
-            .filter_map(|r: Result<SoftwareVersion>| r.ok())
+            .filter_map(Result::ok)
             .collect();
         conn.transaction::<(), diesel::result::Error, _>(|c| {
             diesel::delete(software_list::table)
@@ -333,7 +333,7 @@ impl Database {
         version: &String,
         publisher: Option<String>,
     ) -> Result<SoftwareVersion> {
-        let publisher = &publisher.unwrap_or("".to_string());
+        let publisher = &publisher.unwrap_or(String::new());
         let mut conn = self.pool.get()?;
         let entries: Option<SoftwareInfo> = software_info::table
             .filter(software_info::name.eq(name))
@@ -825,7 +825,7 @@ impl Database {
                 (volume_status::free_space / volume_status::capacity)
                     .lt(BigDecimal::try_from(0.1)?),
             )
-            .or_filter(volume_status::free_space.lt(BigDecimal::from(5000000000_u64)))
+            .or_filter(volume_status::free_space.lt(BigDecimal::from(5_000_000_000_u64)))
             .load::<(VolumeStatus, (Client, OsInfo))>(&mut conn)?)
     }
 

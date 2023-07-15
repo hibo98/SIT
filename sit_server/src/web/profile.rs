@@ -56,14 +56,13 @@ fn profile(database: &State<Database>, sid: String, user: User) -> Template {
             .map(|(up, _, c, os)| Profile {
                 client_uuid: c.uuid,
                 os_computer_name: os
-                    .map(|os| {
+                    .map_or("<no computer name>".to_string(), |os| {
                         if let Some(domain) = os.domain {
                             format!("{}.{}", os.computer_name, domain)
                         } else {
                             os.computer_name
                         }
-                    })
-                    .unwrap_or("<no computer name>".to_string()),
+                    }),
                 health_status: ms_magic::resolve_profile_health_status(up.health_status),
                 roaming_configured: up.roaming_configured,
                 roaming_path: up.roaming_path,

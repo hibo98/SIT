@@ -52,7 +52,7 @@ fn get_prefix(exp: u8) -> String {
         6 => "M",
         9 => "G",
         12 => "T",
-        15 => "E",
+        15 => "P",
         _ => "",
     }
     .to_string()
