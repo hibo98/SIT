@@ -1,2 +1,2 @@
 ALTER TABLE "user" ADD "domain" TEXT NULL;
-UPDATE "user" SET "username" = split_part("U"."username", '\', 2), "domain" = split_part("U"."username", '\', 1) FROM "user" AS "U";
+UPDATE "user" AS "u1" SET "username" = split_part("u2"."username", '\', 2), "domain" = split_part("u2"."username", '\', 1) FROM "user" AS "u2" WHERE "u1"."id" = "u2"."id";
