@@ -97,6 +97,7 @@ pub struct User {
     pub id: i32,
     pub sid: String,
     pub username: Option<String>,
+    pub domain: Option<String>,
 }
 
 #[derive(Clone, Debug, Queryable, Serialize)]
@@ -104,6 +105,7 @@ pub struct UserWithProfileCount {
     pub id: i32,
     pub sid: String,
     pub username: Option<String>,
+    pub domain: Option<String>,
     pub count: i64,
 }
 
@@ -112,6 +114,7 @@ pub struct UserWithProfileCount {
 pub struct NewUser<'a> {
     pub sid: &'a String,
     pub username: Option<&'a String>,
+    pub domain: Option<&'a String>,
 }
 
 #[derive(Clone, Debug, Queryable, Serialize)]

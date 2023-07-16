@@ -88,29 +88,31 @@ impl OsInfo {
             .iter()
             .filter(|up| !up.Special)
             .filter(|up| up.SID.starts_with("S-1-5-21-"))
-            .map(|up| ProfileInfo {
-                username: OsInfo::lookup_account_by_sid(&up.SID)
-                    .ok()
-                    .map(|account| format!("{}\\{}", account.domain_name, account.username)),
-                sid: up.SID.clone(),
-                health_status: up.HealthStatus,
-                roaming_configured: up.RoamingConfigured,
-                roaming_path: up.RoamingPath.clone(),
-                roaming_preference: up.RoamingPreference,
-                last_use_time: up.LastUseTime.0,
-                last_download_time: up.LastDownloadTime.as_ref().map(|ts| ts.0),
-                last_upload_time: up.LastUploadTime.as_ref().map(|ts| ts.0),
-                status: up.Status,
-                size: if up.Loaded {
-                    None
-                } else {
-                    OsInfo::get_dir_size(&up.LocalPath).ok()
-                },
-                path_size: if up.Loaded {
-                    None
-                } else {
-                    OsInfo::get_profile_dir_path_infos(&up.LocalPath).ok()
-                },
+            .map(|up| {
+                let account_info = OsInfo::lookup_account_by_sid(&up.SID).ok();
+                ProfileInfo {
+                    domain: account_info.as_ref().map(|a| a.domain_name.clone()),
+                    username: account_info.as_ref().map(|account| account.username.clone()),
+                    sid: up.SID.clone(),
+                    health_status: up.HealthStatus,
+                    roaming_configured: up.RoamingConfigured,
+                    roaming_path: up.RoamingPath.clone(),
+                    roaming_preference: up.RoamingPreference,
+                    last_use_time: up.LastUseTime.0,
+                    last_download_time: up.LastDownloadTime.as_ref().map(|ts| ts.0),
+                    last_upload_time: up.LastUploadTime.as_ref().map(|ts| ts.0),
+                    status: up.Status,
+                    size: if up.Loaded {
+                        None
+                    } else {
+                        OsInfo::get_dir_size(&up.LocalPath).ok()
+                    },
+                    path_size: if up.Loaded {
+                        None
+                    } else {
+                        OsInfo::get_profile_dir_path_infos(&up.LocalPath).ok()
+                    },
+                }
             })
             .collect();
         Ok(UserProfiles { profiles: vec })

@@ -27,6 +27,7 @@ struct UserWithProfileCount {
     pub id: i32,
     pub sid: String,
     pub username: String,
+    pub domain: String,
     pub count: i64,
 }
 
@@ -40,7 +41,8 @@ fn index(database: &State<Database>, user: User) -> Template {
         .map(|p| UserWithProfileCount {
             id: p.id,
             sid: p.sid,
-            username: p.username.unwrap_or("<unknown user>".to_owned()),
+            username: p.username.unwrap_or("<_user>".to_owned()),
+            domain: p.domain.unwrap_or("<_domain>".to_owned()),
             count: p.count,
         })
         .collect();

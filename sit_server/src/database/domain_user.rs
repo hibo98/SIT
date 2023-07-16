@@ -63,7 +63,10 @@ impl UserManager {
                 {
                     Some(db_user) => {
                         let sid: String = db_user.sid;
-                        self.user_id_cache.lock().unwrap().insert(sid.clone(), user_id);
+                        self.user_id_cache
+                            .lock()
+                            .unwrap()
+                            .insert(sid.clone(), user_id);
                         sid_cache.insert(user_id, sid.clone());
                         Ok(Some(sid))
                     }
@@ -106,6 +109,7 @@ impl UserManager {
                 user::id,
                 user::sid,
                 user::username,
+                user::domain,
                 coalesce(
                     userprofile::table
                         .filter(userprofile::user_id.eq(user::id))
@@ -142,25 +146,56 @@ impl UserManager {
             let mut to_delete: Vec<i32> = vec![];
 
             for p in &profiles.profiles {
+                let user_info = if let (Some(username), Some(domain)) = (&p.username, &p.domain) {
+                    Some((username.to_string(), domain.to_string()))
+                } else if let Some(username) = &p.username {
+                    let mut split = username.split('\\');
+                    let d = split.next();
+                    let u = split.next();
+                    if let (Some(d), Some(u)) = (d, u) {
+                        Some((u.to_string(), d.to_string()))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
                 let user_id = match self.get_user_id_for_sid(&p.sid)? {
                     Some(user_id) => {
-                        if let Some(username) = &p.username {
+                        if let Some((username, domain)) = user_info {
                             diesel::update(user::table)
-                                .set(user::username.eq(username))
+                                .set((user::username.eq(username), user::domain.eq(domain)))
                                 .filter(user::id.eq(user_id))
                                 .execute(c)?;
                         }
                         user_id
                     }
                     None => {
-                        let user: User = diesel::insert_into(user::table)
-                            .values(NewUser {
-                                sid: &p.sid,
-                                username: p.username.as_ref(),
-                            })
-                            .get_result(c)?;
-                        self.user_id_cache.lock().unwrap().insert(user.sid.clone(), user.id);
-                        self.sid_cache.lock().unwrap().insert(user.id, user.sid.clone());
+                        let user: User = if let Some((username, domain)) = user_info {
+                            diesel::insert_into(user::table)
+                                .values(NewUser {
+                                    sid: &p.sid,
+                                    username: Some(&username),
+                                    domain: Some(&domain),
+                                })
+                                .get_result(c)?
+                        } else {
+                            diesel::insert_into(user::table)
+                                .values(NewUser {
+                                    sid: &p.sid,
+                                    username: p.username.as_ref(),
+                                    domain: p.domain.as_ref(),
+                                })
+                                .get_result(c)?
+                        };
+                        self.user_id_cache
+                            .lock()
+                            .unwrap()
+                            .insert(user.sid.clone(), user.id);
+                        self.sid_cache
+                            .lock()
+                            .unwrap()
+                            .insert(user.id, user.sid.clone());
                         user.id
                     }
                 };

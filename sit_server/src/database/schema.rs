@@ -147,6 +147,7 @@ diesel::table! {
         id -> Int4,
         sid -> Text,
         username -> Nullable<Text>,
+        domain -> Nullable<Text>,
     }
 }
 

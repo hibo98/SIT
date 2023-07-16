@@ -13,7 +13,7 @@
         <tbody>
             {{#each profiles}}
                 <tr>
-                    <td><a href="/profile/{{this.sid}}">{{this.username}}</a></td>
+                    <td><a href="/profile/{{this.sid}}">{{this.domain}}\\{{this.username}}</a></td>
                     <td>{{this.count}}</td>
                 </tr>
             {{/each}}

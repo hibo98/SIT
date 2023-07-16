@@ -16,7 +16,7 @@
         <tbody>
             {{#each profiles}}
                 <tr>
-                    <td><a href="/profile/{{this.user_sid}}">{{this.user_name}}</a></td>
+                    <td><a href="/profile/{{this.user_sid}}">{{this.user_domain}}\\{{this.user_name}}</a></td>
                     <td>{{this.health_status}}</td>
                     <td>{{this.roaming_path}}</td>
                     <td>{{this.last_use_time}}</td>

@@ -11,6 +11,7 @@ use super::{display_util, ms_magic};
 struct Profile {
     pub user_sid: String,
     pub user_name: String,
+    pub user_domain: String,
     pub health_status: String,
     pub roaming_configured: bool,
     pub roaming_path: Option<String>,
@@ -88,7 +89,8 @@ fn profiles(database: &State<Database>, uuid: Uuid, user: User) -> Template {
             .into_iter()
             .map(|(up, u)| Profile {
                 user_sid: u.sid,
-                user_name: u.username.unwrap_or("<unknown user>".to_owned()),
+                user_name: u.username.unwrap_or("<_user>".to_owned()),
+                user_domain: u.domain.unwrap_or("<_domain>".to_owned()),
                 health_status: ms_magic::resolve_profile_health_status(up.health_status),
                 roaming_configured: up.roaming_configured,
                 roaming_path: up.roaming_path,

@@ -17,6 +17,8 @@ pub struct UserProfiles {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProfileInfo {
+    #[serde(default)]
+    pub domain: Option<String>,
     pub username: Option<String>,
     pub sid: String,
     pub health_status: u8,
