@@ -1,0 +1,44 @@
+{{> _layout_settings-top title="Wartung - Software"}}
+<div class="software-tables">
+    <h2>Versionen</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+        {{#each delete_software_version}}
+            <tr>
+                <td>{{this.id}}</td>
+                <td>{{this.name}}</td>
+                <td>{{this.version}}</td>
+                <td><!--<a href="/settings/users/{{this.username}}/edit">Ändern</a><a href="/settings/users/{{this.username}}/delete">Löschen</a>--></td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+    <h2>Software</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+        {{#each delete_software}}
+            <tr>
+                <td>{{this.id}}</td>
+                <td>{{this.name}}</td>
+                <td><!--<a href="/settings/users/{{this.username}}/edit">Ändern</a><a href="/settings/users/{{this.username}}/delete">Löschen</a>--></td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_settings-bottom}}
