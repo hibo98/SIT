@@ -47,10 +47,10 @@ fn new_user(_user: User) -> Template {
 fn post_new_user(db: &State<Database>, user: Form<Login<'_>>, _guard: User) -> Redirect {
     let result = crate::auth::create_new_user(db, user.username, user.password);
     if result.is_err() {
-        Redirect::to(uri!("/auth", post_new_user))
+        Redirect::to(uri!("/settings", new_user))
         // TODO: Add error cause
     } else {
-        Redirect::to(uri!("/auth", users))
+        Redirect::to(uri!("/settings", users))
     }
 }
 
@@ -90,6 +90,34 @@ fn service_software(db: &State<Database>, user: User) -> Template {
     )
 }
 
+#[get("/service/software/cleanup/version")]
+fn service_software_cleanup_version(db: &State<Database>, _user: User) -> Redirect {
+    let software_list = db.get_software_list().unwrap_or(vec![]);
+    for software in software_list {
+        let versions = db.get_software_versions(software.id).unwrap_or(vec![]);
+        for version in &versions {
+            if version.count == 0 {
+                let _ = db.delete_software_version(version.id);
+            }
+        }
+    }
+    Redirect::to(uri!("/settings", service_software))
+}
+
+#[get("/service/software/cleanup/info")]
+fn service_software_cleanup_list(db: &State<Database>, _user: User) -> Redirect {
+    let software_list = db.get_software_list().unwrap_or(vec![]);
+    for software in software_list {
+        let versions = db.get_software_versions(software.id);
+        if let Ok(versions) = versions {
+            if versions.is_empty() {
+                let _ = db.delete_software_info(software.id);
+            }
+        }
+    }
+    Redirect::to(uri!("/settings", service_software))
+}
+
 pub fn routes() -> Vec<Route> {
     routes![
         index,
@@ -97,6 +125,8 @@ pub fn routes() -> Vec<Route> {
         new_user,
         post_new_user,
         service_index,
-        service_software
+        service_software,
+        service_software_cleanup_version,
+        service_software_cleanup_list,
     ]
 }

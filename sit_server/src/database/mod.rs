@@ -407,6 +407,13 @@ impl Database {
             .get_result::<SoftwareInfo>(&mut conn)?)
     }
 
+    pub fn delete_software_info(&self, software_id: i32) -> Result<usize> {
+        let mut conn = self.pool.get()?;
+        Ok(diesel::delete(software_info::table)
+            .filter(software_info::id.eq(software_id))
+            .execute(&mut conn)?)
+    }
+
     pub fn get_software_versions(&self, software_id: i32) -> Result<Vec<SoftwareVersionWithCount>> {
         let mut conn = self.pool.get()?;
         Ok(software_version::table
@@ -425,6 +432,13 @@ impl Database {
             .filter(software_version::software_id.eq(software_id))
             .order_by(software_version::version)
             .load::<SoftwareVersionWithCount>(&mut conn)?)
+    }
+
+    pub fn delete_software_version(&self, version_id: i32) -> Result<usize> {
+        let mut conn = self.pool.get()?;
+        Ok(diesel::delete(software_version::table)
+            .filter(software_version::id.eq(version_id))
+            .execute(&mut conn)?)
     }
 
     pub fn get_software_computer_list(
