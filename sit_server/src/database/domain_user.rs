@@ -124,15 +124,14 @@ impl UserManager {
 
     pub fn get_profile_info(
         &self,
-        sid: String,
-    ) -> Result<Vec<(UserProfile, User, Client, Option<OsInfo>)>> {
+        user_id: i32,
+    ) -> Result<Vec<(UserProfile, Client, Option<OsInfo>)>> {
         let mut conn = self.pool.get()?;
         Ok(userprofile::table
-            .filter(user::sid.eq(sid))
-            .inner_join(user::table)
+            .filter(userprofile::user_id.eq(user_id))
             .inner_join(client::table)
             .left_join(os_info::table.on(os_info::client_id.eq(userprofile::client_id)))
-            .load::<(UserProfile, User, Client, Option<OsInfo>)>(&mut conn)?)
+            .load::<(UserProfile, Client, Option<OsInfo>)>(&mut conn)?)
     }
 
     pub fn update_profiles(&self, client_id: i32, profiles: UserProfiles) -> Result<()> {

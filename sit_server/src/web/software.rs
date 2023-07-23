@@ -1,7 +1,16 @@
 use rocket::{response::Redirect, Route, State};
 use rocket_dyn_templates::{context, Template};
+use serde::Serialize;
 
 use crate::{auth::User, database::Database};
+
+#[derive(Clone, Debug, Serialize)]
+pub struct SoftwareVersionWithCount {
+    pub id: i32,
+    pub software_id: i32,
+    pub version: String,
+    pub count: i64,
+}
 
 #[get("/")]
 fn index(user: User) -> Template {
@@ -22,6 +31,15 @@ fn software(database: &State<Database>, id: i32, user: User) -> Template {
     let software_info = database.get_software_info(id);
     let software_versions = database.get_software_versions(id);
     if let (Ok(software_info), Ok(software_versions)) = (software_info, software_versions) {
+        let software_versions: Vec<SoftwareVersionWithCount> = software_versions
+            .into_iter()
+            .map(|sv| SoftwareVersionWithCount {
+                id: sv.id,
+                software_id: sv.software_id,
+                version: if sv.version.is_empty() { "<_version>".to_string() } else { sv.version },
+                count: sv.count,
+            })
+            .collect();
         Template::render(
             "software/software",
             context! { software_info, software_versions, user },

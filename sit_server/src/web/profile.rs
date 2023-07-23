@@ -51,41 +51,46 @@ fn index(database: &State<Database>, user: User) -> Template {
 
 #[get("/<sid>")]
 fn profile(database: &State<Database>, sid: String, user: User) -> Template {
-    let profiles_result = database.user_manager().get_profile_info(sid);
-    if let Ok(profiles) = profiles_result {
-        let profile: Vec<Profile> = profiles
-            .into_iter()
-            .map(|(up, _, c, os)| Profile {
-                client_uuid: c.uuid,
-                os_computer_name: os
-                    .map_or("<no computer name>".to_string(), |os| {
-                        if let Some(domain) = os.domain {
-                            format!("{}.{}", os.computer_name, domain)
-                        } else {
-                            os.computer_name
-                        }
-                    }),
-                health_status: ms_magic::resolve_profile_health_status(up.health_status),
-                roaming_configured: up.roaming_configured,
-                roaming_path: up.roaming_path,
-                roaming_preference: up.roaming_preference,
-                last_use_time: display_util::format_date_time(up.last_use_time),
-                last_download_time: up
-                    .last_download_time
-                    .map(display_util::format_date_time)
-                    .unwrap_or_default(),
-                last_upload_time: up
-                    .last_upload_time
-                    .map(display_util::format_date_time)
-                    .unwrap_or_default(),
-                status: ms_magic::resolve_profile_status(up.status),
-                size: display_util::format_option_big_decimal(
-                    &up.size,
-                    display_util::format_filesize_byte,
-                ),
-            })
-            .collect();
-        Template::render("profile/profile", context! { profile, user })
+    let user_id = database.user_manager().get_user_id_for_sid(&sid);
+    if let Ok(Some(user_id)) = user_id {
+        let profiles_result = database.user_manager().get_profile_info(user_id);
+        if let Ok(profiles) = profiles_result {
+            let profile: Vec<Profile> = profiles
+                .into_iter()
+                .map(|(up, c, os)| Profile {
+                    client_uuid: c.uuid,
+                    os_computer_name: os
+                        .map_or("<_computer_name>".to_string(), |os| {
+                            if let Some(domain) = os.domain {
+                                format!("{}.{}", os.computer_name, domain)
+                            } else {
+                                os.computer_name
+                            }
+                        }),
+                    health_status: ms_magic::resolve_profile_health_status(up.health_status),
+                    roaming_configured: up.roaming_configured,
+                    roaming_path: up.roaming_path,
+                    roaming_preference: up.roaming_preference,
+                    last_use_time: display_util::format_date_time(up.last_use_time),
+                    last_download_time: up
+                        .last_download_time
+                        .map(display_util::format_date_time)
+                        .unwrap_or_default(),
+                    last_upload_time: up
+                        .last_upload_time
+                        .map(display_util::format_date_time)
+                        .unwrap_or_default(),
+                    status: ms_magic::resolve_profile_status(up.status),
+                    size: display_util::format_option_big_decimal(
+                        &up.size,
+                        display_util::format_filesize_byte,
+                    ),
+                })
+                .collect();
+            Template::render("profile/profile", context! { profile, user })
+        } else {
+            Template::render("profile/profile", context! {})
+        }
     } else {
         Template::render("profile/profile", context! {})
     }
