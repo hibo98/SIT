@@ -1,16 +1,15 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use serde::Deserialize;
 use sit_lib::os::{PathInfo, ProfileInfo, UserProfiles, WinOsInfo};
 use std::ffi::CString;
 use walkdir::WalkDir;
 use windows::core::{PCSTR, PCWSTR, PWSTR};
-use windows::Win32::Foundation::{GetLastError, HLOCAL, PSID};
+use windows::Win32::Foundation::{LocalFree, HLOCAL, PSID};
 use windows::Win32::Security::Authorization::ConvertStringSidToSidA;
 use windows::Win32::Security::{LookupAccountSidW, SID_NAME_USE};
-use windows::Win32::System::Memory::LocalFree;
 use winreg::enums::HKEY_LOCAL_MACHINE;
 use winreg::RegKey;
 use wmi::{WMIConnection, WMIDateTime, WMIError};
@@ -60,7 +59,7 @@ struct WinPointer {
 impl Drop for WinPointer {
     fn drop(&mut self) {
         unsafe {
-            let _ = LocalFree(HLOCAL(self.inner.0 as isize));
+            let _ = LocalFree(HLOCAL(self.inner.0));
         }
     }
 }
@@ -92,7 +91,9 @@ impl OsInfo {
                 let account_info = OsInfo::lookup_account_by_sid(&up.SID).ok();
                 ProfileInfo {
                     domain: account_info.as_ref().map(|a| a.domain_name.clone()),
-                    username: account_info.as_ref().map(|account| account.username.clone()),
+                    username: account_info
+                        .as_ref()
+                        .map(|account| account.username.clone()),
                     sid: up.SID.clone(),
                     health_status: up.HealthStatus,
                     roaming_configured: up.RoamingConfigured,
@@ -125,15 +126,10 @@ impl OsInfo {
         };
 
         unsafe {
-            if !ConvertStringSidToSidA(
+            ConvertStringSidToSidA(
                 PCSTR::from_raw(sid_c_string.as_ptr() as *const u8),
                 &mut sid_ptr.inner,
-            )
-            .as_bool()
-            {
-                let err = GetLastError().to_hresult().message();
-                bail!("Conversion of String to PSID failed ({err}) SID: {sid_str}");
-            }
+            )?;
         }
 
         let mut name: [u16; 256] = [0; 256];
@@ -145,7 +141,7 @@ impl OsInfo {
         let mut sid_name_use = SID_NAME_USE::default();
 
         unsafe {
-            if !LookupAccountSidW(
+            LookupAccountSidW(
                 PCWSTR::null(),
                 sid_ptr.inner,
                 name_pwstr,
@@ -153,12 +149,7 @@ impl OsInfo {
                 domain_name_pwstr,
                 &mut domain_name_size,
                 &mut sid_name_use,
-            )
-            .as_bool()
-            {
-                let err = GetLastError().to_hresult().message();
-                bail!("Lookup of Account failed ({err})");
-            }
+            )?;
 
             Ok(AccountInfo {
                 username: name_pwstr.to_string()?,
