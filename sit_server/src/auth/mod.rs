@@ -4,7 +4,7 @@ use chrono::{Duration, NaiveDateTime, Utc};
 use password_hash::{rand_core::OsRng, PasswordHash, SaltString};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use rocket::{
-    http::{private::cookie::Expiration, Cookie, CookieJar},
+    http::{private::cookie::Expiration, Cookie, CookieJar, Status},
     outcome::try_outcome,
     request::{FromRequest, Outcome, Request},
     time::OffsetDateTime,
@@ -35,7 +35,7 @@ impl<'r> FromRequest<'r> for User {
                     .signed_duration_since(session.valid_until)
                     .gt(&Duration::zero())
                 {
-                    return Outcome::Forward(());
+                    return Outcome::Forward(Status::SeeOther);
                 }
                 if let Ok(user) = db.get_auth_user_by_id(session.user_id) {
                     if let Ok((naive, offset)) = calc_current_exp_time() {
@@ -49,9 +49,9 @@ impl<'r> FromRequest<'r> for User {
                     });
                 }
             }
-            Outcome::Forward(())
+            Outcome::Forward(Status::SeeOther)
         } else {
-            Outcome::Forward(())
+            Outcome::Forward(Status::SeeOther)
         }
     }
 }
@@ -69,7 +69,7 @@ pub fn login(db: &Database, username: &str, password: &str, cookie_jar: &CookieJ
 
 pub fn logout(db: &Database, jar: &CookieJar) -> Result<()> {
     if let Some(cookie) = jar.get_private(COOKIE_SESSION_ID) {
-        jar.remove_private(Cookie::named(COOKIE_SESSION_ID));
+        jar.remove_private(Cookie::from(COOKIE_SESSION_ID));
         db.delete_session(cookie.value())?;
     }
     Ok(())

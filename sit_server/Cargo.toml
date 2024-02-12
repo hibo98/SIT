@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
-rocket = { version = "0.5.0-rc.3", features = ["json", "uuid", "secrets"] }
-rocket_dyn_templates = { version = "0.1.0-rc.3", features = ["handlebars"] }
+rocket = { version = "0.5.0", features = ["json", "uuid", "secrets"] }
+rocket_dyn_templates = { version = "0.1.0", features = ["handlebars"] }
 diesel = { version = "2", features = [
     "postgres",
     "uuid",
@@ -25,7 +25,7 @@ uuid = { version = "1", features = ["v4", "serde"] }
 sit_lib = { path = "../sit_lib" }
 anyhow = "1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
-bigdecimal = { version = "0.3", features = ["serde"] }
+bigdecimal = { version = "0.4", features = ["serde"] }
 urlencoding = "2"
 password-hash = { version = "0.5" }
 argon2 = { version = "0.5", features = ["password-hash"] }

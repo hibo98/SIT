@@ -12,7 +12,7 @@ default-target = "x86_64-pc-windows-gnu"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 wmi = "0.13"
-winreg = { version = "0.51", features = ["serialization-serde"] }
+winreg = { version = "0.52", features = ["serialization-serde"] }
 sit_lib = { path = "../sit_lib" }
 reqwest = { version = "0.11", features = ["json", "blocking"] }
 job_scheduler_ng = "2"
@@ -22,10 +22,13 @@ windows-service = "0.6"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 clap = "4"
 walkdir = "2"
-windows = { version = "0.51", features = [
+windows = { version = "0.52", features = [
     "Win32_Foundation",
     "Win32_Security",
     "Win32_Security_Authorization",
     "Win32_System_Memory",
     "Win32_UI_Shell",
 ] }
+diesel = { version = "2", features = ["sqlite", "r2d2", "numeric"] }
+diesel_migrations = { version = "2", features = ["sqlite"] }
+rusqlite = { version = "0.30", features = ["bundled"] }

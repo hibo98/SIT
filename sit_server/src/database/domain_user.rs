@@ -353,7 +353,7 @@ impl UserManager {
         Ok(())
     }
 
-    pub fn invalidate_cache(&self) {
+    pub fn _invalidate_cache(&self) {
         self.user_id_cache.lock().unwrap().clear();
         self.sid_cache.lock().unwrap().clear();
     }
