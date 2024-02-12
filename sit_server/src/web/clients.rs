@@ -64,7 +64,7 @@ struct UserProfilePaths {
 
 #[get("/")]
 fn index(database: &State<Database>, user: User) -> Template {
-    let client_info = database.get_clients_with_os_info().unwrap_or(vec![]);
+    let client_info = database.get_clients_with_os_info().unwrap_or_default();
     Template::render("clients/index", context! { clients: client_info, user })
 }
 
@@ -165,10 +165,10 @@ fn hardware(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
-        let processors = database.get_client_processors(uuid).unwrap_or(vec![]);
+        let processors = database.get_client_processors(uuid).unwrap_or_default();
         let memory: Vec<Memory> = database
             .get_client_memory(uuid)
-            .unwrap_or(vec![])
+            .unwrap_or_default()
             .into_iter()
             .map(|m| Memory {
                 capacity: display_util::format_option_big_decimal(
@@ -180,7 +180,7 @@ fn hardware(database: &State<Database>, uuid: Uuid, user: User) -> Template {
             .collect();
         let memory_sticks: Vec<MemoryStick> = database
             .get_client_memory_sticks(uuid)
-            .unwrap_or(vec![])
+            .unwrap_or_default()
             .into_iter()
             .map(|m| MemoryStick {
                 capacity: display_util::format_option_big_decimal(
@@ -190,10 +190,10 @@ fn hardware(database: &State<Database>, uuid: Uuid, user: User) -> Template {
                 bank_label: m.bank_label,
             })
             .collect();
-        let graphics_cards = database.get_client_graphics_cards(uuid).unwrap_or(vec![]);
+        let graphics_cards = database.get_client_graphics_cards(uuid).unwrap_or_default();
         let disks: Vec<Disk> = database
             .get_client_disks(uuid)
-            .unwrap_or(vec![])
+            .unwrap_or_default()
             .into_iter()
             .map(|d| Disk {
                 model: d.model,
@@ -207,9 +207,9 @@ fn hardware(database: &State<Database>, uuid: Uuid, user: User) -> Template {
                 media_type: d.media_type,
             })
             .collect();
-        let computer_models = database.get_client_computer_model(uuid).unwrap_or(vec![]);
-        let bios_list = database.get_client_bios(uuid).unwrap_or(vec![]);
-        let network_adapters = database.get_client_network_adapters(uuid).unwrap_or(vec![]);
+        let computer_models = database.get_client_computer_model(uuid).unwrap_or_default();
+        let bios_list = database.get_client_bios(uuid).unwrap_or_default();
+        let network_adapters = database.get_client_network_adapters(uuid).unwrap_or_default();
         Template::render(
             "clients/hardware",
             context! { processors, memory, memory_sticks, graphics_cards, disks, computer_models, bios_list, network_adapters, client, os_info, user },
@@ -226,7 +226,7 @@ fn status(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
         let volumes: Vec<VolumeStatus> = database
             .get_client_volume_status(uuid)
-            .unwrap_or(vec![])
+            .unwrap_or_default()
             .into_iter()
             .map(|v| VolumeStatus {
                 drive_letter: v.drive_letter,
@@ -264,7 +264,7 @@ fn licenses(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
     let os_info = database.get_client_os_info(&uuid);
     if let (Ok(client), Ok(os_info)) = (client, os_info) {
-        let licenses = database.get_client_licenses(uuid).unwrap_or(vec![]);
+        let licenses = database.get_client_licenses(uuid).unwrap_or_default();
         Template::render(
             "clients/licenses",
             context! { licenses, client, os_info, user },

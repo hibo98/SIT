@@ -19,7 +19,7 @@ fn index(user: User) -> Template {
 
 #[get("/software")]
 fn software_list(database: &State<Database>, user: User) -> Template {
-    let software_info = database.get_software_list().unwrap_or(vec![]);
+    let software_info = database.get_software_list().unwrap_or_default();
     Template::render(
         "software/software_list",
         context! { software: software_info, user },
@@ -83,7 +83,7 @@ fn software_version(database: &State<Database>, id: i32, user: User) -> Template
 
 #[get("/license")]
 fn license_list(database: &State<Database>, user: User) -> Template {
-    let license_info = database.get_license_list().unwrap_or(vec![]);
+    let license_info = database.get_license_list().unwrap_or_default();
     Template::render(
         "software/license_list",
         context! { license: license_info, user },
@@ -92,7 +92,7 @@ fn license_list(database: &State<Database>, user: User) -> Template {
 
 #[get("/license/<name>")]
 fn license_computer(database: &State<Database>, name: String, user: User) -> Template {
-    let license_info = database.get_license_with_computers(&name).unwrap_or(vec![]);
+    let license_info = database.get_license_with_computers(&name).unwrap_or_default();
     Template::render(
         "software/license_computer",
         context! { license: license_info, user },

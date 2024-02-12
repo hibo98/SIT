@@ -89,7 +89,7 @@ fn processors(database: &State<Database>, user: User) -> Template {
 
 #[get("/processors/<processor>")]
 fn processor_clients(database: &State<Database>, processor: String, user: User) -> Template {
-    let clients = database.get_processor_clients(&processor).unwrap_or(vec![]);
+    let clients = database.get_processor_clients(&processor).unwrap_or_default();
     Template::render(
         "hardware/clients",
         context! { clients, headline: processor, user },
@@ -124,7 +124,7 @@ fn memory(database: &State<Database>, user: User) -> Template {
 
 #[get("/memory/<size>/<count>")]
 fn memory_clients(database: &State<Database>, size: u64, count: i64, user: User) -> Template {
-    let clients = database.get_memory_clients(size, count).unwrap_or(vec![]);
+    let clients = database.get_memory_clients(size, count).unwrap_or_default();
     Template::render(
         "hardware/clients",
         context! { clients, headline: format!("{}, {} Stick(s)", display_util::format_filesize_byte_iec(size as f64, 0), count), user },
@@ -151,7 +151,7 @@ fn graphics_cards(database: &State<Database>, user: User) -> Template {
 
 #[get("/graphics_cards/<card>")]
 fn graphics_card_clients(database: &State<Database>, card: String, user: User) -> Template {
-    let clients = database.get_graphics_card_clients(&card).unwrap_or(vec![]);
+    let clients = database.get_graphics_card_clients(&card).unwrap_or_default();
     Template::render(
         "hardware/clients",
         context! { clients, headline: card, user },
@@ -187,7 +187,7 @@ fn disks(database: &State<Database>, user: User) -> Template {
 
 #[get("/disks/<model>/<size>")]
 fn disk_clients(database: &State<Database>, model: String, size: u64, user: User) -> Template {
-    let clients = database.get_disk_clients(&model, size).unwrap_or(vec![]);
+    let clients = database.get_disk_clients(&model, size).unwrap_or_default();
     Template::render(
         "hardware/clients",
         context! { clients, headline: format!("{}, {}", model, display_util::format_filesize_byte(size as f64, 0)), user },
@@ -223,7 +223,7 @@ fn model_clients(
 ) -> Template {
     let clients = database
         .get_computer_model_clients(&model, &manufacturer)
-        .unwrap_or(vec![]);
+        .unwrap_or_default();
     Template::render(
         "hardware/clients",
         context! { clients, headline: format!("{}, {}", manufacturer, model), user },
@@ -255,7 +255,7 @@ fn network_adapters(database: &State<Database>, user: User) -> Template {
 fn network_adapter_clients(database: &State<Database>, name: String, user: User) -> Template {
     let clients = database
         .get_network_adapter_clients(&name)
-        .unwrap_or(vec![]);
+        .unwrap_or_default();
     Template::render(
         "hardware/clients",
         context! { clients, headline: name, user },

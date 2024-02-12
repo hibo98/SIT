@@ -63,9 +63,9 @@ fn service_index(user: User) -> Template {
 fn service_software(db: &State<Database>, user: User) -> Template {
     let mut delete_software_version: Vec<SoftwareVersion> = vec![];
     let mut delete_software: Vec<SoftwareInfo> = vec![];
-    let software_list = db.get_software_list().unwrap_or(vec![]);
+    let software_list = db.get_software_list().unwrap_or_default();
     for software in software_list {
-        let versions = db.get_software_versions(software.id).unwrap_or(vec![]);
+        let versions = db.get_software_versions(software.id).unwrap_or_default();
         for version in &versions {
             if version.count == 0 {
                 delete_software_version.push(SoftwareVersion {
@@ -92,9 +92,9 @@ fn service_software(db: &State<Database>, user: User) -> Template {
 
 #[get("/service/software/cleanup/version")]
 fn service_software_cleanup_version(db: &State<Database>, _user: User) -> Redirect {
-    let software_list = db.get_software_list().unwrap_or(vec![]);
+    let software_list = db.get_software_list().unwrap_or_default();
     for software in software_list {
-        let versions = db.get_software_versions(software.id).unwrap_or(vec![]);
+        let versions = db.get_software_versions(software.id).unwrap_or_default();
         for version in &versions {
             if version.count == 0 {
                 let _ = db.delete_software_version(version.id);
@@ -106,7 +106,7 @@ fn service_software_cleanup_version(db: &State<Database>, _user: User) -> Redire
 
 #[get("/service/software/cleanup/info")]
 fn service_software_cleanup_list(db: &State<Database>, _user: User) -> Redirect {
-    let software_list = db.get_software_list().unwrap_or(vec![]);
+    let software_list = db.get_software_list().unwrap_or_default();
     for software in software_list {
         let versions = db.get_software_versions(software.id);
         if let Ok(versions) = versions {

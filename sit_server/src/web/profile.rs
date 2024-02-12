@@ -36,7 +36,7 @@ fn index(database: &State<Database>, user: User) -> Template {
     let profiles: Vec<UserWithProfileCount> = database
         .user_manager()
         .get_profiles()
-        .unwrap_or(vec![])
+        .unwrap_or_default()
         .into_iter()
         .map(|p| UserWithProfileCount {
             id: p.id,
