@@ -6,7 +6,6 @@ use anyhow::Result;
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
 use diesel::dsl::{count, count_star, max, sum};
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sql_types::{BigInt, Nullable};
@@ -23,10 +22,12 @@ use crate::database::model::*;
 use crate::database::schema::*;
 
 use self::domain_user::UserManager;
+use self::task::TaskManager;
 
 mod domain_user;
 mod model;
 mod schema;
+mod task;
 
 sql_function! { fn coalesce(x: Nullable<BigInt>, y: BigInt) -> BigInt; }
 
@@ -35,6 +36,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 pub struct Database {
     pool: Pool<ConnectionManager<PgConnection>>,
     user_manager: UserManager,
+    task_manager: TaskManager,
 }
 
 impl Database {
@@ -57,12 +59,17 @@ impl Database {
 
         Database {
             pool: pool.clone(),
-            user_manager: UserManager::new(pool),
+            user_manager: UserManager::new(pool.clone()),
+            task_manager: TaskManager::new(pool),
         }
     }
 
     pub fn user_manager(&self) -> &UserManager {
         &self.user_manager
+    }
+
+    pub fn task_manager(&self) -> &TaskManager {
+        &self.task_manager
     }
 
     pub fn create_client(&self, uuid: &Uuid) -> Result<Client> {
@@ -333,7 +340,7 @@ impl Database {
         version: &String,
         publisher: Option<String>,
     ) -> Result<SoftwareVersion> {
-        let publisher = &publisher.unwrap_or(String::new());
+        let publisher = &publisher.unwrap_or_default();
         let mut conn = self.pool.get()?;
         let entries: Option<SoftwareInfo> = software_info::table
             .filter(software_info::name.eq(name))

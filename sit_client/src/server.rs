@@ -5,6 +5,7 @@ use sit_lib::os::{UserProfiles, WinOsInfo};
 use sit_lib::server::Register;
 use sit_lib::software::SoftwareLibrary;
 use sit_lib::system_status::VolumeList;
+use sit_lib::task::{Task, TaskBundle, TaskUpdate};
 
 use crate::Config;
 
@@ -98,6 +99,28 @@ impl Server {
                 Config::get_uuid()?.unwrap()
             ))
             .json(volumes)
+            .send();
+        Ok(())
+    }
+
+    pub fn get_tasks() -> Result<Vec<Task>> {
+        let response = reqwest::blocking::get(format!(
+            "{}/api/v1/tasks/{}",
+            Config::get_web_api()?,
+            Config::get_uuid()?.unwrap()
+        ))?;
+        let task_bundle: TaskBundle = response.json()?;
+        Ok(task_bundle.tasks)
+    }
+
+    pub fn update_task(task_update: &TaskUpdate) -> Result<()> {
+        let _request = reqwest::blocking::Client::new()
+            .post(format!(
+                "{}/api/v1/tasks/{}",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
+            .json(task_update)
             .send();
         Ok(())
     }

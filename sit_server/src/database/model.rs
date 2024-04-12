@@ -1,10 +1,22 @@
 use diesel::sql_types::{Int8, Nullable, Numeric};
+use diesel_derive_enum::DbEnum;
+use serde_json::Value;
 use uuid::Uuid;
 
 use super::schema::*;
 use bigdecimal::BigDecimal;
 use chrono::naive::NaiveDateTime;
 use rocket::serde::Serialize;
+
+#[derive(Debug, PartialEq, DbEnum, Clone, Serialize)]
+#[ExistingTypePath = "crate::database::schema::sql_types::TaskStatus"]
+pub enum TaskStatus {
+    Created,
+    Downloaded,
+    Running,
+    Successful,
+    Failed,
+}
 
 #[derive(Debug, Queryable, Serialize, Clone)]
 pub struct Client {
@@ -440,4 +452,26 @@ pub struct AuthSessions {
     pub session_id: String,
     pub user_id: i32,
     pub valid_until: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = client_task)]
+pub struct NewTask {
+    pub client_id: i32,
+    pub task: Value,
+    pub time_start: Option<NaiveDateTime>,
+    pub time_download: Option<NaiveDateTime>,
+    pub task_status: Option<TaskStatus>,
+    pub task_result: Option<Value>,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct Task {
+    pub id: i32,
+    pub client_id: i32,
+    pub task: Value,
+    pub time_start: Option<NaiveDateTime>,
+    pub time_download: Option<NaiveDateTime>,
+    pub task_status: Option<TaskStatus>,
+    pub task_result: Option<Value>,
 }

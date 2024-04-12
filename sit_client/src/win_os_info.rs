@@ -10,6 +10,7 @@ use windows::core::{PCSTR, PCWSTR, PWSTR};
 use windows::Win32::Foundation::{LocalFree, HLOCAL, PSID};
 use windows::Win32::Security::Authorization::ConvertStringSidToSidA;
 use windows::Win32::Security::{LookupAccountSidW, SID_NAME_USE};
+use windows::Win32::UI::Shell::DeleteProfileA;
 use winreg::enums::HKEY_LOCAL_MACHINE;
 use winreg::RegKey;
 use wmi::{WMIConnection, WMIDateTime, WMIError};
@@ -117,6 +118,18 @@ impl OsInfo {
             })
             .collect();
         Ok(UserProfiles { profiles: vec })
+    }
+
+    pub fn delete_user_profile(sid_str: &str) -> Result<()> {
+        let sid_c_string = CString::new(sid_str)?;
+        unsafe {
+            DeleteProfileA(
+                PCSTR::from_raw(sid_c_string.as_ptr() as *const u8),
+                PCSTR::null(),
+                PCSTR::null(),
+            )?;
+        }
+        Ok(())
     }
 
     fn lookup_account_by_sid(sid_str: &str) -> Result<AccountInfo> {

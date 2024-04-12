@@ -145,6 +145,32 @@ fn profile_paths(database: &State<Database>, uuid: Uuid, sid: String, user: User
     }
 }
 
+#[get("/<uuid>/profiles/<sid>/delete")]
+fn profile_delete(database: &State<Database>, uuid: Uuid, sid: String, user: User) -> Template {
+    let client = database.get_client(&uuid);
+    if let Ok(client) = client {
+        let task = database.task_manager().delete_user_profile(client.id, sid.clone());
+        if task.is_ok() {
+            Template::render("task/task_created_successful", context! {
+                task_name: "delete-user-profile",
+                task_client: client.id,
+                task_info: format!("SID: {}", sid),
+                user,
+            })
+        } else {
+            Template::render("task/task_create_error", context! {
+                error: "task_create_error",
+                user,
+            })
+        }
+    } else {
+        Template::render("task/task_create_error", context! {
+            error: "task_create_precheck_error",
+            user,
+        })
+    }
+}
+
 #[get("/<uuid>/software")]
 fn software(database: &State<Database>, uuid: Uuid, user: User) -> Template {
     let client = database.get_client(&uuid);
@@ -289,6 +315,7 @@ pub fn routes() -> Vec<Route> {
         status,
         licenses,
         profile_paths,
+        profile_delete,
         catch_all,
     ]
 }

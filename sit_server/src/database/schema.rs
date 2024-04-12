@@ -1,5 +1,11 @@
 // @generated automatically by Diesel CLI.
 
+pub mod sql_types {
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "task_status"))]
+    pub struct TaskStatus;
+}
+
 diesel::table! {
     auth_sessions (id) {
         id -> Int4,
@@ -30,6 +36,21 @@ diesel::table! {
     client (id) {
         id -> Int4,
         uuid -> Uuid,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::TaskStatus;
+
+    client_task (id) {
+        id -> Int4,
+        client_id -> Int4,
+        task -> Json,
+        time_start -> Nullable<Timestamp>,
+        time_download -> Nullable<Timestamp>,
+        task_status -> Nullable<TaskStatus>,
+        task_result -> Nullable<Json>,
     }
 }
 
@@ -191,6 +212,7 @@ diesel::table! {
 
 diesel::joinable!(auth_sessions -> auth_user (user_id));
 diesel::joinable!(bios -> client (client_id));
+diesel::joinable!(client_task -> client (client_id));
 diesel::joinable!(computer_model -> client (client_id));
 diesel::joinable!(disks -> client (client_id));
 diesel::joinable!(graphics_card -> client (client_id));
@@ -214,6 +236,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     auth_user,
     bios,
     client,
+    client_task,
     computer_model,
     disks,
     graphics_card,

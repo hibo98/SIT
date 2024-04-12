@@ -1,15 +1,18 @@
 #[macro_use]
 extern crate windows_service;
 
+use std::io::stdin;
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::builder::NonEmptyStringValueParser;
 use clap::{arg, ArgAction, Command};
+use database::Database;
 use job_scheduler_ng::{Job, JobScheduler};
+use serde_json::json;
 use wmi::{COMLibrary, WMIConnection};
 
 use crate::config::Config;
@@ -21,6 +24,7 @@ use crate::system_status::SystemStatus;
 use crate::win_os_info::OsInfo;
 
 mod config;
+mod database;
 mod hardware;
 mod licenses;
 mod server;
@@ -32,11 +36,17 @@ mod win_os_info;
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     let mut scheduler = JobScheduler::new();
     COMLibrary::new()?;
-    scheduler.add(Job::new("0 * * * * * *".parse().unwrap(), update_base_info));
-    scheduler.add(Job::new(
-        "0 0/5 * * * * *".parse().unwrap(),
-        update_rich_info,
-    ));
+    let db = Database::establish_connection();
+    let db_update_task = db.clone();
+    let db_run_tasks = db.clone();
+    scheduler.add(Job::new("0 * * * * * *".parse()?, update_base_info));
+    scheduler.add(Job::new("40 0/5 * * * * *".parse()?, update_rich_info));
+    scheduler.add(Job::new("20 * * * * * *".parse()?, move || {
+        update_task_info(db_update_task.clone());
+    }));
+    scheduler.add(Job::new("10 * * * * * *".parse()?, move || {
+        run_tasks(db_run_tasks.clone());
+    }));
 
     if let Some(shutdown_rx) = shutdown_rx {
         loop {
@@ -87,6 +97,39 @@ fn update_rich_info() {
     }
     if let Ok(licenses) = Licenses::collect_licenses() {
         Server::licenses(&licenses).unwrap();
+    }
+}
+
+fn update_task_info(db: Database) {
+    if let Ok(tasks) = Server::get_tasks() {
+        let task_manager = db.task_manager();
+        for task in tasks {
+            task_manager.add_new_task(task.clone()).unwrap();
+        }
+    }
+}
+
+fn run_tasks(db: Database) {
+    for task in db.task_manager().get_pending_tasks().unwrap() {
+        let task_manager = db.task_manager();
+        task_manager.task_update_running(&task);
+        thread::spawn(move || {
+            let task_name = task.task.get("name").map(|v| v.as_str().unwrap_or_default()).unwrap_or_default();
+            if task_name.eq_ignore_ascii_case("delete-user-profile") {
+                let parameters = task.task.get("parameters").map(|v| v.as_object()).unwrap_or_default();
+                if let Some(parameters) = parameters {
+                    let sid = parameters.get("sid").map(|p| p.as_str().unwrap_or_default()).unwrap_or_default();
+                    let result = OsInfo::delete_user_profile(sid);
+                    if result.is_ok() {
+                        task_manager.task_update_successful(&task, None);
+                    } else if let Err(e) = result {
+                        task_manager.task_update_failed(&task, Some(json!({"error": e.to_string()})));
+                    }
+                }
+                task_manager.task_update_failed(&task, Some(json!({"error": "missing parameters"})));
+            }
+            task_manager.task_update_failed(&task, Some(json!({"error": "unkown task"})));
+        });
     }
 }
 
@@ -146,6 +189,16 @@ fn main() -> Result<()> {
                 println!("{:#?}", Licenses::get_windows_key());
             } else if func == *"system-status" {
                 println!("{:#?}", SystemStatus::get_volume_status(&wmi_con));
+            } else if func == *"delete-user-profile" {
+                println!("Enter SID of User: ");
+                let mut buffer = String::new();
+
+                stdin().read_line(&mut buffer)?;
+                let res = match buffer.trim_end() {
+                    "" => bail!("Please enter a vaild SID for the user"),
+                    sid => OsInfo::delete_user_profile(sid),
+                };
+                println!("{:#?}", res);
             }
         }
         Some(("update", sub_matches)) => {

@@ -11,6 +11,7 @@
                 <th>Letzter Upload</th>
                 <th>Zustand</th>
                 <th>Größe</th>
+                <th>Aktionen</th>
             </tr>
         </thead>
         <tbody>
@@ -24,6 +25,7 @@
                     <td>{{this.last_upload_time}}</td>
                     <td>{{#each this.status}}{{this}}<br/>{{/each}}</td>
                     <td><a href="/clients/{{../client.uuid}}/profiles/{{this.user_sid}}">{{this.size}}</a></td>
+                    <td><a href="/clients/{{../client.uuid}}/profiles/{{this.user_sid}}/delete">Löschen</a></td>
                 </tr>
             {{/each}}
         </tbody>
