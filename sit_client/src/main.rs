@@ -31,6 +31,7 @@ mod server;
 mod service_mgmt;
 mod software;
 mod system_status;
+mod win_core;
 mod win_os_info;
 
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
@@ -199,6 +200,8 @@ fn main() -> Result<()> {
                     sid => OsInfo::delete_user_profile(sid),
                 };
                 println!("{:#?}", res);
+            } else if func == *"power-status" {
+                Hardware::get_battery_status()?;
             }
         }
         Some(("update", sub_matches)) => {

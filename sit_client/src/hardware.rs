@@ -6,6 +6,8 @@ use serde::Deserialize;
 use sit_lib::hardware::*;
 use wmi::WMIConnection;
 
+use crate::win_core::power::Power;
+
 pub struct Hardware;
 
 #[derive(Deserialize, Debug)]
@@ -203,5 +205,15 @@ impl Hardware {
             }
         }
         None
+    }
+
+    pub fn get_battery_status() -> Result<BatteryStatus> {
+        let system_power_status = Power::get_system_power_status()?;
+        if system_power_status.BatteryFlag & 0b10000000 /* 128 */ {
+            let system_batteries_info = Power::get_battery_information()?;
+            Ok(BatteryStatus { batteries: system_batteries_info })
+        } else {
+            Ok(BatteryStatus { batteries: Vec::new() })
+        }
     }
 }

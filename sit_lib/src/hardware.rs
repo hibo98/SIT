@@ -79,3 +79,21 @@ pub struct BIOS {
     pub name: String,
     pub version: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BatteryStatus {
+    pub batteries: Vec<Battery>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Battery {
+    pub id: String,
+    pub manufacturer: String,
+    pub serial_number: String,
+    pub chemistry: String,
+    // pub manufacture_date: String,
+    // pub first_use_date: String,
+    pub cycle_count: u32,
+    pub designed_capacity: u32,
+    pub full_charged_capacity: u32,
+}
