@@ -29,7 +29,7 @@ mod model;
 mod schema;
 mod task;
 
-sql_function! { fn coalesce(x: Nullable<BigInt>, y: BigInt) -> BigInt; }
+define_sql_function! { fn coalesce(x: Nullable<BigInt>, y: BigInt) -> BigInt; }
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 

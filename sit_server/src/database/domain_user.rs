@@ -10,7 +10,7 @@ use diesel::sql_types::{BigInt, Nullable};
 use sit_lib::os::{ProfileInfo, UserProfiles};
 use uuid::Uuid;
 
-sql_function! { fn coalesce(x: Nullable<BigInt>, y: BigInt) -> BigInt; }
+define_sql_function! { fn coalesce(x: Nullable<BigInt>, y: BigInt) -> BigInt; }
 
 pub struct UserManager {
     user_id_cache: Mutex<HashMap<String, i32>>,
