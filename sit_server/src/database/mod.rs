@@ -11,7 +11,7 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sql_types::{BigInt, Nullable};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dotenv::dotenv;
-use sit_lib::hardware::HardwareInfo;
+use sit_lib::hardware::{BatteryStatus, HardwareInfo};
 use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::WinOsInfo;
 use sit_lib::software::SoftwareLibrary;
@@ -939,4 +939,30 @@ impl Database {
             .execute(&mut conn)?;
         Ok(())
     }
+
+    pub fn update_battery_status(&self, client_id: i32, battery_status: BatteryStatus) -> Result<()>{
+        let mut conn = self.pool.get()?;
+        conn.transaction::<(), diesel::result::Error, _>(|c| {
+            diesel::delete(battery::table)
+                .filter(battery::client_id.eq(client_id))
+                .execute(c)?;
+            for b in battery_status.batteries.into_iter() {
+                diesel::insert_into(battery::table)
+                    .values(NewBattery {
+                        client_id: &client_id,
+                        battery_id: b.id,
+                        manufacturer: b.manufacturer,
+                        serial_number: b.serial_number,
+                        chemistry: b.chemistry,
+                        cycle_count: b.cycle_count as i64,
+                        designed_capacity: b.designed_capacity as i64,
+                        full_charged_capacity: b.full_charged_capacity as i64,
+                    })
+                    .execute(c)?;
+            }
+            Ok(())
+        })?;
+        Ok(())
+    }
+
 }

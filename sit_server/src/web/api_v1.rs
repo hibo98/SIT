@@ -6,7 +6,7 @@ use rocket::response::status;
 use rocket::serde::json::Json;
 use rocket::Route;
 use rocket::State;
-use sit_lib::hardware::HardwareInfo;
+use sit_lib::hardware::{BatteryStatus, HardwareInfo};
 use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::UserProfiles;
 use sit_lib::os::WinOsInfo;
@@ -185,6 +185,33 @@ async fn status_volumes(
     }
 }
 
+#[post("/status/<uuid>/battery", data = "<input>")]
+async fn status_battery(
+    database: &State<Database>,
+    uuid: Uuid,
+    input: Json<BatteryStatus>,
+) -> status::Custom<()> {
+    match database.get_client(&uuid) {
+        Ok(client) => match database.update_battery_status(client.id, input.0) {
+            Ok(_) => status::Custom(Status::Ok, ()),
+            Err(error) => {
+                println!(
+                    "[ERROR] In api_v1 /status/{}/battery update_battery_status {:?}",
+                    uuid, error
+                );
+                status::Custom(Status::InternalServerError, ())
+            }
+        },
+        Err(error) => {
+            println!(
+                "[ERROR] In api_v1 /status/{}/battery get_client {:?}",
+                uuid, error
+            );
+            status::Custom(Status::InternalServerError, ())
+        }
+    }
+}
+
 #[post("/licenses/<uuid>", data = "<input>")]
 async fn licenses(
     database: &State<Database>,
@@ -282,6 +309,7 @@ pub fn routes() -> Vec<Route> {
         software,
         profiles,
         status_volumes,
+        status_battery,
         licenses,
         tasks_get,
         task_update,

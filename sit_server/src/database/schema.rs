@@ -24,6 +24,20 @@ diesel::table! {
 }
 
 diesel::table! {
+    battery (id) {
+        id -> Int4,
+        client_id -> Int4,
+        battery_id -> Text,
+        manufacturer -> Text,
+        serial_number -> Text,
+        chemistry -> Text,
+        cycle_count -> Int8,
+        designed_capacity -> Int8,
+        full_charged_capacity -> Int8,
+    }
+}
+
+diesel::table! {
     bios (client_id) {
         client_id -> Int4,
         name -> Text,
@@ -211,6 +225,7 @@ diesel::table! {
 }
 
 diesel::joinable!(auth_sessions -> auth_user (user_id));
+diesel::joinable!(battery -> client (client_id));
 diesel::joinable!(bios -> client (client_id));
 diesel::joinable!(client_task -> client (client_id));
 diesel::joinable!(computer_model -> client (client_id));
@@ -234,6 +249,7 @@ diesel::joinable!(volume_status -> client (client_id));
 diesel::allow_tables_to_appear_in_same_query!(
     auth_sessions,
     auth_user,
+    battery,
     bios,
     client,
     client_task,

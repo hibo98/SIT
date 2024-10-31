@@ -475,3 +475,33 @@ pub struct Task {
     pub task_status: Option<TaskStatus>,
     pub task_result: Option<Value>,
 }
+
+#[derive(Insertable)]
+#[diesel(table_name = battery)]
+pub struct NewBattery <'a> {
+    pub client_id: &'a i32,
+    pub battery_id: String,
+    pub manufacturer: String,
+    pub serial_number: String,
+    pub chemistry: String,
+    // pub manufacture_date: String,
+    // pub first_use_date: String,
+    pub cycle_count: i64,
+    pub designed_capacity: i64,
+    pub full_charged_capacity: i64,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct Battery {
+    pub id: i32,
+    pub client_id: i32,
+    pub battery_id: String,
+    pub manufacturer: String,
+    pub serial_number: String,
+    pub chemistry: String,
+    // pub manufacture_date: String,
+    // pub first_use_date: String,
+    pub cycle_count: i64,
+    pub designed_capacity: i64,
+    pub full_charged_capacity: i64,
+}

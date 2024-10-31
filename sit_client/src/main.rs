@@ -99,6 +99,9 @@ fn update_rich_info() {
     if let Ok(licenses) = Licenses::collect_licenses() {
         Server::licenses(&licenses).unwrap();
     }
+    if let Ok(battery_status) = Hardware::get_battery_status() {
+        Server::battery_status(&battery_status).unwrap();
+    }
 }
 
 fn update_task_info(db: Database) {
