@@ -165,7 +165,7 @@ fn profile_delete(database: &State<Database>, uuid: Uuid, sid: String, user: Use
         }
     } else {
         Template::render("task/task_create_error", context! {
-            error: "task_create_precheck_error",
+            error: "task_create_pre_check_error",
             user,
         })
     }

@@ -98,9 +98,9 @@ fn processor_clients(database: &State<Database>, processor: String, user: User) 
 
 #[get("/memory")]
 fn memory(database: &State<Database>, user: User) -> Template {
-    let memorys = database.get_memorys_count();
-    if let Ok(memorys) = memorys {
-        let memorys: Vec<MemoryCount> = memorys
+    let memory = database.get_memory_count();
+    if let Ok(memory) = memory {
+        let memory: Vec<MemoryCount> = memory
             .into_iter()
             .map(|m| MemoryCount {
                 capacity: display_util::format_option_big_decimal(
@@ -116,7 +116,7 @@ fn memory(database: &State<Database>, user: User) -> Template {
                 count: m.count,
             })
             .collect();
-        Template::render("hardware/memory", context! { memorys, user })
+        Template::render("hardware/memory", context! { memory, user })
     } else {
         Template::render("hardware/memory", context! {})
     }

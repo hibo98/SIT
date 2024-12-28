@@ -278,7 +278,7 @@ impl Database {
         Ok(())
     }
 
-    pub fn update_license_keys(&self, client_id: i32, license_bundes: LicenseBundle) -> Result<()> {
+    pub fn update_license_keys(&self, client_id: i32, license_bundles: LicenseBundle) -> Result<()> {
         self.pool
             .get()?
             .transaction::<(), diesel::result::Error, _>(|conn| {
@@ -289,7 +289,7 @@ impl Database {
                 let mut to_update: Vec<(String, String)> = vec![];
                 let mut to_delete: Vec<i32> = vec![];
 
-                for l in &license_bundes.licenses {
+                for l in &license_bundles.licenses {
                     if !existing.iter().any(|i| i.name.eq(&l.name)) {
                         to_add.push(NewLicenseKey {
                             client_id: &client_id,
@@ -305,7 +305,7 @@ impl Database {
                 }
 
                 for lk in existing {
-                    if !&license_bundes.licenses.iter().any(|i| i.name.eq(&lk.name)) {
+                    if !&license_bundles.licenses.iter().any(|i| i.name.eq(&lk.name)) {
                         to_delete.push(lk.id);
                     }
                 }
@@ -588,7 +588,7 @@ impl Database {
             .load::<Processor>(&mut conn)?)
     }
 
-    pub fn get_memorys_count(&self) -> Result<Vec<MemoryCount>> {
+    pub fn get_memory_count(&self) -> Result<Vec<MemoryCount>> {
         let mut conn = self.pool.get()?;
         Ok(diesel::sql_query(
             "SELECT capacity, sticks, COUNT(*) FROM memory GROUP BY capacity, sticks ORDER BY capacity, sticks;",

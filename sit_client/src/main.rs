@@ -132,7 +132,7 @@ fn run_tasks(db: Database) {
                 }
                 task_manager.task_update_failed(&task, Some(json!({"error": "missing parameters"})));
             }
-            task_manager.task_update_failed(&task, Some(json!({"error": "unkown task"})));
+            task_manager.task_update_failed(&task, Some(json!({"error": "unknown task"})));
         });
     }
 }
@@ -199,7 +199,7 @@ fn main() -> Result<()> {
 
                 stdin().read_line(&mut buffer)?;
                 let res = match buffer.trim_end() {
-                    "" => bail!("Please enter a vaild SID for the user"),
+                    "" => bail!("Please enter a valid SID for the user"),
                     sid => OsInfo::delete_user_profile(sid),
                 };
                 println!("{:#?}", res);
