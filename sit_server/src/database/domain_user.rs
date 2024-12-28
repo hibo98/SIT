@@ -29,7 +29,7 @@ impl UserManager {
 
     pub fn get_user_id_for_sid(&self, sid: &String) -> Result<Option<i32>> {
         let mut c = self.pool.get()?;
-        let mut user_id_cache = self.user_id_cache.lock().unwrap();
+        let mut user_id_cache = self.user_id_cache.lock()?;
         match user_id_cache.get(sid) {
             Some(user_id) => Ok(Some(user_id.to_owned())),
             None => {
@@ -41,7 +41,7 @@ impl UserManager {
                     Some(db_user) => {
                         let user_id: i32 = db_user.id;
                         user_id_cache.insert(sid.clone(), user_id);
-                        self.sid_cache.lock().unwrap().insert(user_id, sid.clone());
+                        self.sid_cache.lock()?.insert(user_id, sid.clone());
                         Ok(Some(user_id))
                     }
                     None => Ok(None),
@@ -52,7 +52,7 @@ impl UserManager {
 
     pub fn get_sid_for_user_id(&self, user_id: i32) -> Result<Option<String>> {
         let mut c = self.pool.get()?;
-        let mut sid_cache = self.sid_cache.lock().unwrap();
+        let mut sid_cache = self.sid_cache.lock()?;
         match sid_cache.get(&user_id) {
             Some(sid) => Ok(Some(sid.clone())),
             None => {
@@ -64,8 +64,7 @@ impl UserManager {
                     Some(db_user) => {
                         let sid: String = db_user.sid;
                         self.user_id_cache
-                            .lock()
-                            .unwrap()
+                            .lock()?
                             .insert(sid.clone(), user_id);
                         sid_cache.insert(user_id, sid.clone());
                         Ok(Some(sid))
