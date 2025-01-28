@@ -10,13 +10,13 @@ use windows::{
             GUID_DEVCLASS_BATTERY, HDEVINFO, SP_DEVICE_INTERFACE_DATA,
             SP_DEVICE_INTERFACE_DETAIL_DATA_A, SP_DEVINFO_DATA,
         },
-        Foundation::{CloseHandle, GENERIC_READ, GENERIC_WRITE, HANDLE, HWND},
+        Foundation::{CloseHandle, GENERIC_READ, GENERIC_WRITE},
         Storage::FileSystem::{
             CreateFileA, FILE_FLAGS_AND_ATTRIBUTES, FILE_SHARE_NONE, OPEN_EXISTING,
         },
         System::{
             Power::{
-                GetSystemPowerStatus, BATTERY_INFORMATION, BATTERY_MANUFACTURE_DATE,
+                GetSystemPowerStatus, BATTERY_INFORMATION,
                 BATTERY_QUERY_INFORMATION, BATTERY_QUERY_INFORMATION_LEVEL,
                 IOCTL_BATTERY_QUERY_INFORMATION, IOCTL_BATTERY_QUERY_TAG, SYSTEM_POWER_STATUS,
             },
@@ -44,7 +44,7 @@ impl Power {
             let h_dev_info = SetupDiGetClassDevsW(
                 Some(&GUID_DEVCLASS_BATTERY),
                 PCWSTR::null(),
-                HWND::default(),
+                None,
                 DIGCF_PRESENT | DIGCF_DEVICEINTERFACE,
             )?;
 
@@ -127,7 +127,7 @@ impl Power {
             None,
             OPEN_EXISTING,
             FILE_FLAGS_AND_ATTRIBUTES(0),
-            HANDLE::default(),
+            None,
         )?;
 
         let mut battery_tag: u32 = 0;

@@ -60,7 +60,7 @@ struct WinPointer {
 impl Drop for WinPointer {
     fn drop(&mut self) {
         unsafe {
-            let _ = LocalFree(HLOCAL(self.inner.0));
+            let _ = LocalFree(Some(HLOCAL(self.inner.0)));
         }
     }
 }
@@ -157,9 +157,9 @@ impl OsInfo {
             LookupAccountSidW(
                 PCWSTR::null(),
                 sid_ptr.inner,
-                name_pwstr,
+                Some(name_pwstr),
                 &mut name_size,
-                domain_name_pwstr,
+                Some(domain_name_pwstr),
                 &mut domain_name_size,
                 &mut sid_name_use,
             )?;

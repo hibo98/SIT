@@ -29,4 +29,4 @@ bigdecimal = { version = "0.4", features = ["serde"] }
 urlencoding = "2"
 password-hash = { version = "0.5" }
 argon2 = { version = "0.5", features = ["password-hash"] }
-rand = { version = "0.8" }
+rand = { version = "0.9" }
