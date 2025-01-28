@@ -194,7 +194,7 @@ diesel::table! {
         roaming_configured -> Bool,
         roaming_path -> Nullable<Text>,
         roaming_preference -> Nullable<Bool>,
-        last_use_time -> Timestamp,
+        last_use_time -> Nullable<Timestamp>,
         last_download_time -> Nullable<Timestamp>,
         last_upload_time -> Nullable<Timestamp>,
         status -> Int8,

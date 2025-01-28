@@ -227,7 +227,7 @@ impl UserManager {
                             roaming_configured: &p.roaming_configured,
                             roaming_path: p.roaming_path.as_ref(),
                             roaming_preference: p.roaming_preference.as_ref(),
-                            last_use_time: &p.last_use_time.naive_utc(),
+                            last_use_time: p.last_use_time.map(|t| t.naive_utc()),
                             last_download_time: p.last_download_time.map(|t| t.naive_utc()),
                             last_upload_time: p.last_upload_time.map(|t| t.naive_utc()),
                             status: &(p.status as i64),
@@ -243,7 +243,7 @@ impl UserManager {
                             roaming_configured: &p.roaming_configured,
                             roaming_path: p.roaming_path.as_ref(),
                             roaming_preference: p.roaming_preference.as_ref(),
-                            last_use_time: &p.last_use_time.naive_utc(),
+                            last_use_time: p.last_use_time.map(|t| t.naive_utc()),
                             last_download_time: p.last_download_time.map(|t| t.naive_utc()),
                             last_upload_time: p.last_upload_time.map(|t| t.naive_utc()),
                             status: &(p.status as i64),
@@ -292,7 +292,8 @@ impl UserManager {
                             userprofile::roaming_configured.eq(&p.roaming_configured),
                             userprofile::roaming_path.eq(p.roaming_path.as_ref()),
                             userprofile::roaming_preference.eq(p.roaming_preference.as_ref()),
-                            userprofile::last_use_time.eq(&p.last_use_time.naive_utc()),
+                            userprofile::last_use_time
+                                .eq(p.last_use_time.map(|t| t.naive_utc())),
                             userprofile::last_download_time
                                 .eq(p.last_download_time.map(|t| t.naive_utc())),
                             userprofile::last_upload_time
@@ -310,7 +311,8 @@ impl UserManager {
                             userprofile::roaming_configured.eq(&p.roaming_configured),
                             userprofile::roaming_path.eq(p.roaming_path.as_ref()),
                             userprofile::roaming_preference.eq(p.roaming_preference.as_ref()),
-                            userprofile::last_use_time.eq(&p.last_use_time.naive_utc()),
+                            userprofile::last_use_time
+                                .eq(p.last_use_time.map(|t| t.naive_utc())),
                             userprofile::last_download_time
                                 .eq(p.last_download_time.map(|t| t.naive_utc())),
                             userprofile::last_upload_time

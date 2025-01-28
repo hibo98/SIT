@@ -25,7 +25,7 @@ pub struct ProfileInfo {
     pub roaming_configured: bool,
     pub roaming_path: Option<String>,
     pub roaming_preference: Option<bool>,
-    pub last_use_time: DateTime<FixedOffset>,
+    pub last_use_time: Option<DateTime<FixedOffset>>,
     pub last_download_time: Option<DateTime<FixedOffset>>,
     pub last_upload_time: Option<DateTime<FixedOffset>>,
     pub status: u32,
