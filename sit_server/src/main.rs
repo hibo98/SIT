@@ -29,6 +29,7 @@ async fn main() -> Result<(), rocket::Error> {
         .attach(Template::fairing())
         .mount("/", routes![index, non_user_index])
         .mount("/api/v1/", web::api_v1::routes())
+        .mount("/api/v2/", web::api_v2::routes())
         .mount("/auth", web::auth::routes())
         .mount("/clients/", web::clients::routes())
         .mount("/hardware/", web::hardware::routes())

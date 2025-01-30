@@ -91,9 +91,10 @@ diesel::table! {
 }
 
 diesel::table! {
-    graphics_card (client_id) {
+    graphics_card (id) {
         client_id -> Int4,
         name -> Text,
+        id -> Int4,
     }
 }
 

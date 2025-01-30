@@ -74,7 +74,7 @@ struct Win32_BIOS {
 }
 
 impl Hardware {
-    pub fn get_hardware_info(wmi_con: &WMIConnection) -> Result<HardwareInfo> {
+    pub fn get_hardware_info(wmi_con: &WMIConnection) -> Result<HardwareInfoV2> {
         let model = Self::get_model(wmi_con)?;
         let memory = Self::get_memory(wmi_con)?;
         let processor = Self::get_processor(wmi_con)?;
@@ -83,7 +83,7 @@ impl Hardware {
         let graphics = Self::get_graphics(wmi_con)?;
         let bios = Self::get_bios(wmi_con)?;
 
-        Ok(HardwareInfo {
+        Ok(HardwareInfoV2 {
             model,
             memory,
             processor,
@@ -171,15 +171,15 @@ impl Hardware {
         Ok(Network { adapter })
     }
 
-    fn get_graphics(wmi_con: &WMIConnection) -> Result<GraphicsCard> {
+    fn get_graphics(wmi_con: &WMIConnection) -> Result<Vec<GraphicsCard>> {
+        let mut cards = Vec::new();
         let wmi_vc: Vec<Win32_VideoController> = wmi_con.query()?;
-        if let Some(wmi_vc) = wmi_vc.last() {
-            Ok(GraphicsCard {
-                name: wmi_vc.Name.clone(),
-            })
-        } else {
-            bail!("Empty result on graphics");
+        for gc in wmi_vc {
+            cards.push(GraphicsCard {
+                name: gc.Name.clone(),
+            });
         }
+        Ok(cards)
     }
 
     fn get_bios(wmi_con: &WMIConnection) -> Result<BIOS> {

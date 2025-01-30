@@ -13,6 +13,17 @@ pub struct HardwareInfo {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct HardwareInfoV2 {
+    pub model: ComputerModel,
+    pub memory: PhysicalMemory,
+    pub processor: Processor,
+    pub disks: Disks,
+    pub network: Network,
+    pub graphics: Vec<GraphicsCard>,
+    pub bios: BIOS,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ComputerModel {
     pub manufacturer: String,
     pub model_family: String,

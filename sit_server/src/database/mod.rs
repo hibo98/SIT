@@ -7,11 +7,11 @@ use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
 use diesel::dsl::{count, count_star, max, sum};
 use diesel::prelude::*;
-use diesel::r2d2::{ConnectionManager, Pool};
+use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 use diesel::sql_types::{BigInt, Nullable};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dotenv::dotenv;
-use sit_lib::hardware::{BatteryStatus, HardwareInfo};
+use sit_lib::hardware::{BatteryStatus, Disks, HardwareInfo, HardwareInfoV2, Network, PhysicalMemory, BIOS};
 use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::WinOsInfo;
 use sit_lib::software::SoftwareLibrary;
@@ -116,56 +116,105 @@ impl Database {
     }
 
     pub fn create_hardware_info(&self, client_id: i32, hardware_info: HardwareInfo) -> Result<()> {
+        self.update_computer_model(&client_id, &hardware_info.model)?;
+        self.update_memory_stick(&client_id, &hardware_info.memory)?;
+        self.update_processor(&client_id, &hardware_info.processor)?;
+        self.update_disks(&client_id, &hardware_info.disks)?;
+        self.update_network_adapter(&client_id, &hardware_info.network)?;
+        self.update_graphics_card(&client_id, &hardware_info.graphics)?;
+        self.update_bios(&client_id, &hardware_info.bios)?;
+        Ok(())
+    }
+
+    pub fn create_hardware_info_v2(&self, client_id: i32, hardware_info: HardwareInfoV2) -> Result<()> {
+        self.update_computer_model(&client_id, &hardware_info.model)?;
+        self.update_memory_stick(&client_id, &hardware_info.memory)?;
+        self.update_processor(&client_id, &hardware_info.processor)?;
+        self.update_disks(&client_id, &hardware_info.disks)?;
+        self.update_network_adapter(&client_id, &hardware_info.network)?;
+        self.update_graphics_card_v2(&client_id, &hardware_info.graphics)?;
+        self.update_bios(&client_id, &hardware_info.bios)?;
+        Ok(())
+    }
+
+    fn update_bios(&self, client_id: &i32, bios: &BIOS) -> Result<()> {
         let mut conn = self.pool.get()?;
-        diesel::insert_into(computer_model::table)
-            .values(NewComputerModel {
+        diesel::insert_into(bios::table)
+            .values(NewBios {
                 client_id: &client_id,
-                manufacturer: &hardware_info.model.manufacturer,
-                model_family: &hardware_info.model.model_family,
-                serial_number: &hardware_info.model.serial_number,
+                name: &bios.name,
+                manufacturer: &bios.manufacturer,
+                version: &bios.version,
             })
-            .on_conflict(computer_model::client_id)
+            .on_conflict(bios::client_id)
             .do_update()
             .set((
-                computer_model::manufacturer.eq(&hardware_info.model.manufacturer),
-                computer_model::model_family.eq(&hardware_info.model.model_family),
-                computer_model::serial_number.eq(&hardware_info.model.serial_number),
+                bios::name.eq(&bios.name),
+                bios::manufacturer.eq(&bios.manufacturer),
+                bios::version.eq(&bios.version),
             ))
             .execute(&mut conn)?;
-        diesel::delete(memory_stick::table.filter(memory_stick::client_id.eq(client_id)))
+        Ok(())
+    }
+
+    fn update_graphics_card(&self, client_id: &i32, graphics: &sit_lib::hardware::GraphicsCard) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        diesel::insert_into(graphics_card::table)
+            .values(NewGraphicsCard {
+                client_id: &client_id,
+                name: &graphics.name,
+            })
+            .on_conflict(graphics_card::client_id)
+            .do_update()
+            .set(graphics_card::name.eq(&graphics.name))
             .execute(&mut conn)?;
-        for stick in hardware_info.memory.sticks {
-            diesel::insert_into(memory_stick::table)
-                .values(NewMemoryStick {
-                    client_id: &client_id,
-                    capacity: &BigDecimal::from(stick.capacity),
-                    bank_label: &stick.bank_label,
-                })
-                .execute(&mut conn)?;
+        Ok(())
+    }
+
+    fn update_graphics_card_v2(&self, client_id: &i32, graphics: &Vec<sit_lib::hardware::GraphicsCard>) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        diesel::delete(graphics_card::table.filter(graphics_card::client_id.eq(client_id)))
+            .execute(&mut conn)?;
+        for gc in graphics {
+            self.update_graphics_card(client_id, gc)?;
         }
-        diesel::insert_into(processor::table)
-            .values(NewProcessor {
-                client_id: &client_id,
-                name: &hardware_info.processor.name,
-                manufacturer: &hardware_info.processor.manufacturer,
-                cores: &(hardware_info.processor.cores as i64),
-                logical_cores: &(hardware_info.processor.logical_cores as i64),
-                clock_speed: &(hardware_info.processor.clock_speed as i64),
-                address_width: &(hardware_info.processor.address_width as i32),
-            })
-            .on_conflict(processor::client_id)
-            .do_update()
-            .set((
-                processor::name.eq(&hardware_info.processor.name),
-                processor::manufacturer.eq(&hardware_info.processor.manufacturer),
-                processor::cores.eq(&(hardware_info.processor.cores as i64)),
-                processor::logical_cores.eq(&(hardware_info.processor.logical_cores as i64)),
-                processor::clock_speed.eq(&(hardware_info.processor.clock_speed as i64)),
-                processor::address_width.eq(&(hardware_info.processor.address_width as i32)),
-            ))
+        Ok(())
+    }
+
+    fn update_network_adapter(&self, client_id: &i32, network: &Network) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        diesel::delete(network_adapter::table.filter(network_adapter::client_id.eq(client_id)))
             .execute(&mut conn)?;
+        for na in &network.adapter {
+            let db_na: NetworkAdapter = diesel::insert_into(network_adapter::table)
+                .values(NewNetworkAdapter {
+                    client_id: &client_id,
+                    name: &na.name,
+                    mac_address: na.mac_address.as_ref(),
+                })
+                .get_result(&mut conn)?;
+            diesel::delete(
+                network_adapter_ip::table.filter(network_adapter_ip::adapter_id.eq(db_na.id)),
+            )
+                .execute(&mut conn)?;
+            if let Some(ips) = &na.ip_addresses {
+                for nai in ips {
+                    diesel::insert_into(network_adapter_ip::table)
+                        .values(NewNetworkAdapterIp {
+                            adapter_id: &db_na.id,
+                            ip: &nai,
+                        })
+                        .execute(&mut conn)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn update_disks(&self, client_id: &i32, disks: &Disks) -> Result<()> {
+        let mut conn = self.pool.get()?;
         diesel::delete(disks::table.filter(disks::client_id.eq(client_id))).execute(&mut conn)?;
-        for disk in hardware_info.disks.drives {
+        for disk in &disks.drives {
             diesel::insert_into(disks::table)
                 .values(NewDisk {
                     client_id: &client_id,
@@ -178,53 +227,66 @@ impl Database {
                 })
                 .execute(&mut conn)?;
         }
-        diesel::delete(network_adapter::table.filter(network_adapter::client_id.eq(client_id)))
-            .execute(&mut conn)?;
-        for na in hardware_info.network.adapter {
-            let db_na: NetworkAdapter = diesel::insert_into(network_adapter::table)
-                .values(NewNetworkAdapter {
-                    client_id: &client_id,
-                    name: &na.name,
-                    mac_address: na.mac_address.as_ref(),
-                })
-                .get_result(&mut conn)?;
-            diesel::delete(
-                network_adapter_ip::table.filter(network_adapter_ip::adapter_id.eq(db_na.id)),
-            )
-            .execute(&mut conn)?;
-            if let Some(ips) = na.ip_addresses {
-                for nai in ips {
-                    diesel::insert_into(network_adapter_ip::table)
-                        .values(NewNetworkAdapterIp {
-                            adapter_id: &db_na.id,
-                            ip: &nai,
-                        })
-                        .execute(&mut conn)?;
-                }
-            }
-        }
-        diesel::insert_into(graphics_card::table)
-            .values(NewGraphicsCard {
+        Ok(())
+    }
+
+    fn update_processor(&self, client_id: &i32, processor: &sit_lib::hardware::Processor) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        diesel::insert_into(processor::table)
+            .values(NewProcessor {
                 client_id: &client_id,
-                name: &hardware_info.graphics.name,
+                name: &processor.name,
+                manufacturer: &processor.manufacturer,
+                cores: &(processor.cores as i64),
+                logical_cores: &(processor.logical_cores as i64),
+                clock_speed: &(processor.clock_speed as i64),
+                address_width: &(processor.address_width as i32),
             })
-            .on_conflict(graphics_card::client_id)
-            .do_update()
-            .set(graphics_card::name.eq(&hardware_info.graphics.name))
-            .execute(&mut conn)?;
-        diesel::insert_into(bios::table)
-            .values(NewBios {
-                client_id: &client_id,
-                name: &hardware_info.bios.name,
-                manufacturer: &hardware_info.bios.manufacturer,
-                version: &hardware_info.bios.version,
-            })
-            .on_conflict(bios::client_id)
+            .on_conflict(processor::client_id)
             .do_update()
             .set((
-                bios::name.eq(&hardware_info.bios.name),
-                bios::manufacturer.eq(&hardware_info.bios.manufacturer),
-                bios::version.eq(&hardware_info.bios.version),
+                processor::name.eq(&processor.name),
+                processor::manufacturer.eq(&processor.manufacturer),
+                processor::cores.eq(&(processor.cores as i64)),
+                processor::logical_cores.eq(&(processor.logical_cores as i64)),
+                processor::clock_speed.eq(&(processor.clock_speed as i64)),
+                processor::address_width.eq(&(processor.address_width as i32)),
+            ))
+            .execute(&mut conn)?;
+        Ok(())
+    }
+
+    fn update_memory_stick(&self, client_id: &i32, memory: &PhysicalMemory) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        diesel::delete(memory_stick::table.filter(memory_stick::client_id.eq(client_id)))
+            .execute(&mut conn)?;
+        for stick in &memory.sticks {
+            diesel::insert_into(memory_stick::table)
+                .values(NewMemoryStick {
+                    client_id: &client_id,
+                    capacity: &BigDecimal::from(stick.capacity),
+                    bank_label: &stick.bank_label,
+                })
+                .execute(&mut conn)?;
+        }
+        Ok(())
+    }
+
+    fn update_computer_model(&self, client_id: &i32, model: &sit_lib::hardware::ComputerModel) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        diesel::insert_into(computer_model::table)
+            .values(NewComputerModel {
+                client_id: &client_id,
+                manufacturer: &model.manufacturer,
+                model_family: &model.model_family,
+                serial_number: &model.serial_number,
+            })
+            .on_conflict(computer_model::client_id)
+            .do_update()
+            .set((
+                computer_model::manufacturer.eq(&model.manufacturer),
+                computer_model::model_family.eq(&model.model_family),
+                computer_model::serial_number.eq(&model.serial_number),
             ))
             .execute(&mut conn)?;
         Ok(())

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use sit_lib::hardware::{BatteryStatus, HardwareInfo};
+use sit_lib::hardware::{BatteryStatus, HardwareInfoV2};
 use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::{UserProfiles, WinOsInfo};
 use sit_lib::server::Register;
@@ -43,10 +43,10 @@ impl Server {
         Ok(())
     }
 
-    pub fn hardware(hardware_info: &HardwareInfo) -> Result<()> {
+    pub fn hardware(hardware_info: &HardwareInfoV2) -> Result<()> {
         let _request = reqwest::blocking::Client::new()
             .post(format!(
-                "{}/api/v1/hardware/{}",
+                "{}/api/v2/hardware/{}",
                 Config::get_web_api()?,
                 Config::get_uuid()?.unwrap()
             ))
