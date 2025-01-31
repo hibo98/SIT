@@ -1,4 +1,5 @@
 use anyhow::Result;
+use reqwest::blocking::Client;
 use sit_lib::hardware::{BatteryStatus, HardwareInfoV2};
 use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::{UserProfiles, WinOsInfo};
@@ -13,7 +14,7 @@ pub struct Server;
 
 impl Server {
     pub fn register(name: &str) -> Result<()> {
-        let request = reqwest::blocking::Client::new()
+        let request = Self::build_client()?
             .post(format!("{}/api/v1/register", Config::get_web_api()?))
             .json(&Register {
                 name: name.to_string(),
@@ -32,7 +33,7 @@ impl Server {
     }
 
     pub fn os(os_info: &WinOsInfo) -> Result<()> {
-        let _request = reqwest::blocking::Client::new()
+        let _request = Self::build_client()?
             .post(format!(
                 "{}/api/v1/os/{}",
                 Config::get_web_api()?,
@@ -44,7 +45,7 @@ impl Server {
     }
 
     pub fn hardware(hardware_info: &HardwareInfoV2) -> Result<()> {
-        let _request = reqwest::blocking::Client::new()
+        let _request = Self::build_client()?
             .post(format!(
                 "{}/api/v2/hardware/{}",
                 Config::get_web_api()?,
@@ -56,7 +57,7 @@ impl Server {
     }
 
     pub fn software(software_lib: &SoftwareLibrary) -> Result<()> {
-        let _request = reqwest::blocking::Client::new()
+        let _request = Self::build_client()?
             .post(format!(
                 "{}/api/v1/software/{}",
                 Config::get_web_api()?,
@@ -68,7 +69,7 @@ impl Server {
     }
 
     pub fn profiles(profiles: &UserProfiles) -> Result<()> {
-        let _request = reqwest::blocking::Client::new()
+        let _request = Self::build_client()?
             .post(format!(
                 "{}/api/v1/profiles/{}",
                 Config::get_web_api()?,
@@ -80,7 +81,7 @@ impl Server {
     }
 
     pub fn licenses(licenses: &LicenseBundle) -> Result<()> {
-        let _request = reqwest::blocking::Client::new()
+        let _request = Self::build_client()?
             .post(format!(
                 "{}/api/v1/licenses/{}",
                 Config::get_web_api()?,
@@ -92,7 +93,7 @@ impl Server {
     }
 
     pub fn status_volumes(volumes: &VolumeList) -> Result<()> {
-        let _request = reqwest::blocking::Client::new()
+        let _request = Self::build_client()?
             .post(format!(
                 "{}/api/v1/status/{}/volumes",
                 Config::get_web_api()?,
@@ -104,7 +105,7 @@ impl Server {
     }
 
     pub fn battery_status(battery_status: &BatteryStatus) -> Result<()> {
-        let _request = reqwest::blocking::Client::new()
+        let _request = Self::build_client()?
             .post(format!(
                 "{}/api/v1/status/{}/battery",
                 Config::get_web_api()?,
@@ -116,17 +117,19 @@ impl Server {
     }
 
     pub fn get_tasks() -> Result<Vec<Task>> {
-        let response = reqwest::blocking::get(format!(
-            "{}/api/v1/tasks/{}",
-            Config::get_web_api()?,
-            Config::get_uuid()?.unwrap()
-        ))?;
+        let response = Self::build_client()?
+            .get(format!(
+                "{}/api/v1/tasks/{}",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
+            .send()?;
         let task_bundle: TaskBundle = response.json()?;
         Ok(task_bundle.tasks)
     }
 
     pub fn update_task(task_update: &TaskUpdate) -> Result<()> {
-        let _request = reqwest::blocking::Client::new()
+        let _request = Self::build_client()?
             .post(format!(
                 "{}/api/v1/tasks/{}",
                 Config::get_web_api()?,
@@ -135,5 +138,14 @@ impl Server {
             .json(task_update)
             .send();
         Ok(())
+    }
+
+    fn build_client() -> Result<Client> {
+        let der = std::fs::read("root-ca-cert.der")?;
+        let cert = reqwest::Certificate::from_der(&der)?;
+        Ok(Client::builder()
+            .add_root_certificate(cert)
+            .https_only(true)
+            .build()?)
     }
 }

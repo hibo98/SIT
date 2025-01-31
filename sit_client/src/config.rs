@@ -13,7 +13,7 @@ impl Config {
         let sit_client = schkola_ggmbh.create_subkey("S-IT Client")?.0;
         let settings = sit_client.create_subkey("Settings")?.0;
         if Config::get_web_api().is_err() {
-            settings.set_value("web_api", &"http://127.0.0.1:8000")?;
+            settings.set_value("web_api_https", &"https://127.0.0.1")?;
         }
         sit_client.create_subkey("Client Info")?;
         Ok(())
@@ -22,7 +22,7 @@ impl Config {
     pub fn get_web_api() -> Result<String> {
         let settings = RegKey::predef(HKEY_LOCAL_MACHINE)
             .open_subkey("SOFTWARE\\SCHKOLA gGmbH\\S-IT Client\\Settings")?;
-        Ok(settings.get_value("web_api")?)
+        Ok(settings.get_value("web_api_https")?)
     }
 
     pub fn get_uuid() -> Result<Option<Uuid>> {
