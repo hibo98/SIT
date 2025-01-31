@@ -7,7 +7,7 @@ use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
 use diesel::dsl::{count, count_star, max, sum};
 use diesel::prelude::*;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::sql_types::{BigInt, Nullable};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dotenv::dotenv;

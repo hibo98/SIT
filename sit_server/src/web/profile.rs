@@ -71,7 +71,10 @@ fn profile(database: &State<Database>, sid: String, user: User) -> Template {
                     roaming_configured: up.roaming_configured,
                     roaming_path: up.roaming_path,
                     roaming_preference: up.roaming_preference,
-                    last_use_time: display_util::format_date_time(up.last_use_time),
+                    last_use_time: up
+                        .last_use_time
+                        .map(display_util::format_date_time)
+                        .unwrap_or_default(),
                     last_download_time: up
                         .last_download_time
                         .map(display_util::format_date_time)

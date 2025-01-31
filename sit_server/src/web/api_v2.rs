@@ -3,7 +3,7 @@ use rocket::response::status;
 use rocket::serde::json::Json;
 use rocket::{Route, State};
 use uuid::Uuid;
-use sit_lib::hardware::{HardwareInfo, HardwareInfoV2};
+use sit_lib::hardware::HardwareInfoV2;
 use crate::database::Database;
 
 #[post("/hardware/<uuid>", data = "<input>")]

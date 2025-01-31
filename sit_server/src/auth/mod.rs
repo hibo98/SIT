@@ -2,7 +2,7 @@ use anyhow::{bail, Result};
 use argon2::Argon2;
 use chrono::{Duration, NaiveDateTime, Utc};
 use password_hash::{rand_core::OsRng, PasswordHash, SaltString};
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use rand::{distr::Alphanumeric, rng, Rng};
 use rocket::{
     http::{private::cookie::Expiration, Cookie, CookieJar, Status},
     outcome::try_outcome,
@@ -137,7 +137,7 @@ fn get_new_session_id(db: &Database) -> String {
 }
 
 fn generate_session_id() -> String {
-    thread_rng()
+    rng()
         .sample_iter(&Alphanumeric)
         .take(128)
         .map(|c| c as char)
