@@ -20,7 +20,6 @@ use uuid::Uuid;
 
 use crate::database::model::*;
 use crate::database::schema::*;
-
 use self::domain_user::UserManager;
 use self::task::TaskManager;
 
@@ -158,26 +157,47 @@ impl Database {
     }
 
     fn update_graphics_card(&self, client_id: &i32, graphics: &sit_lib::hardware::GraphicsCard) -> Result<()> {
-        let mut conn = self.pool.get()?;
-        diesel::insert_into(graphics_card::table)
-            .values(NewGraphicsCard {
-                client_id: &client_id,
-                name: &graphics.name,
-            })
-            .on_conflict(graphics_card::client_id)
-            .do_update()
-            .set(graphics_card::name.eq(&graphics.name))
-            .execute(&mut conn)?;
-        Ok(())
+        self.update_graphics_card_v2(client_id, &vec![*graphics])
     }
 
     fn update_graphics_card_v2(&self, client_id: &i32, graphics: &Vec<sit_lib::hardware::GraphicsCard>) -> Result<()> {
-        let mut conn = self.pool.get()?;
-        diesel::delete(graphics_card::table.filter(graphics_card::client_id.eq(client_id)))
-            .execute(&mut conn)?;
-        for gc in graphics {
-            self.update_graphics_card(client_id, gc)?;
-        }
+        self.pool
+            .get()?
+            .transaction::<(), diesel::result::Error, _>(|conn| {
+                let existing: Vec<GraphicsCard> = graphics_card::table
+                    .filter(graphics_card::client_id.eq(client_id))
+                    .load::<GraphicsCard>(conn)?;
+                let mut to_add: Vec<NewGraphicsCard> = vec![];
+                let mut to_delete: Vec<i32> = vec![];
+
+                for g in graphics {
+                    if !existing.iter().any(|i| i.name.eq(&g.name)) {
+                        to_add.push(NewGraphicsCard {
+                            client_id: &client_id,
+                            name: &g.name,
+                        });
+                    }
+                }
+
+                for g in existing {
+                    if !&graphics.iter().any(|i| i.name.eq(&g.name)) {
+                        to_delete.push(g.id);
+                    }
+                }
+
+                if !to_add.is_empty() {
+                    diesel::insert_into(graphics_card::table)
+                        .values(to_add)
+                        .execute(conn)?;
+                }
+
+                if !to_delete.is_empty() {
+                    diesel::delete(graphics_card::table)
+                        .filter(graphics_card::id.eq_any(to_delete))
+                        .execute(conn)?;
+                }
+                Ok(())
+            })?;
         Ok(())
     }
 
