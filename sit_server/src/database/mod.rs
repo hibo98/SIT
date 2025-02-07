@@ -929,6 +929,7 @@ impl Database {
                     .lt(BigDecimal::try_from(0.1)?),
             )
             .or_filter(volume_status::free_space.lt(BigDecimal::from(5_000_000_000_u64)))
+            .order_by(os_info::computer_name)
             .load::<(VolumeStatus, (Client, OsInfo))>(&mut conn)?)
     }
 
