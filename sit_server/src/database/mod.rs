@@ -1,7 +1,6 @@
 extern crate dotenv;
 
 use std::env;
-
 use anyhow::Result;
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
@@ -120,7 +119,7 @@ impl Database {
         self.update_processor(&client_id, &hardware_info.processor)?;
         self.update_disks(&client_id, &hardware_info.disks)?;
         self.update_network_adapter(&client_id, &hardware_info.network)?;
-        self.update_graphics_card(&client_id, &hardware_info.graphics)?;
+        self.update_graphics_card(&client_id, hardware_info.graphics)?;
         self.update_bios(&client_id, &hardware_info.bios)?;
         Ok(())
     }
@@ -156,8 +155,9 @@ impl Database {
         Ok(())
     }
 
-    fn update_graphics_card(&self, client_id: &i32, graphics: &sit_lib::hardware::GraphicsCard) -> Result<()> {
-        self.update_graphics_card_v2(client_id, &vec![*graphics])
+    fn update_graphics_card(&self, client_id: &i32, graphics: sit_lib::hardware::GraphicsCard) -> Result<()> {
+        let g_vec = vec![graphics];
+        self.update_graphics_card_v2(client_id, &g_vec)
     }
 
     fn update_graphics_card_v2(&self, client_id: &i32, graphics: &Vec<sit_lib::hardware::GraphicsCard>) -> Result<()> {
