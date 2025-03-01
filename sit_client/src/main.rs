@@ -79,28 +79,45 @@ fn update_base_info() {
     if let Ok(os_info) = os_info {
         Server::register(&os_info.computer_name).unwrap();
         Server::os(&os_info).unwrap();
+    } else if let Err(e) = os_info {
+        println!("OsInfo::get_os_info {}", e);
     }
 }
 
 fn update_rich_info() {
     let com_con = COMLibrary::without_security().unwrap();
     let wmi_con = WMIConnection::new(com_con).unwrap();
-    if let Ok(hardware_info) = Hardware::get_hardware_info(&wmi_con) {
+    let hardware_info = Hardware::get_hardware_info(&wmi_con);
+    if let Ok(hardware_info) = hardware_info {
         Server::hardware(&hardware_info).unwrap();
+    } else if let Err(e) = hardware_info {
+        println!("Hardware::get_hardware_info {}", e);
     }
-    if let Ok(profiles) = OsInfo::get_user_profiles(&wmi_con) {
+    let profiles = OsInfo::get_user_profiles(&wmi_con);
+    if let Ok(profiles) = profiles {
         Server::profiles(&profiles).unwrap();
+    } else if let Err(e) = profiles {
+        println!("OsInfo::get_user_profiles {}", e);
     }
     let software_lib = Software::get_software_list();
     Server::software(&software_lib).unwrap();
-    if let Ok(volumes) = SystemStatus::get_volume_status(&wmi_con) {
+    let volumes = SystemStatus::get_volume_status(&wmi_con);
+    if let Ok(volumes) = volumes {
         Server::status_volumes(&volumes).unwrap();
+    } else if let Err(e) = volumes {
+        println!("SystemStatus::get_volume_status {}", e);
     }
-    if let Ok(licenses) = Licenses::collect_licenses() {
+    let licenses = Licenses::collect_licenses();
+    if let Ok(licenses) = licenses {
         Server::licenses(&licenses).unwrap();
+    } else if let Err(e) = licenses {
+        println!("Licenses::collect_licenses {}", e);
     }
-    if let Ok(battery_status) = Hardware::get_battery_status() {
+    let battery_status = Hardware::get_battery_status();
+    if let Ok(battery_status) = battery_status {
         Server::battery_status(&battery_status).unwrap();
+    } else if let Err(e) = battery_status {
+        println!("Hardware::get_battery_status {}", e);
     }
 }
 
