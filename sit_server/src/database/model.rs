@@ -56,6 +56,31 @@ pub struct UpdateOsInfo<'a> {
 }
 
 #[derive(Clone, Debug, Queryable, Serialize)]
+pub struct OsCount {
+    pub os: Option<String>,
+    pub count: i64,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct OsList {
+    pub os_info: OsInfo,
+    pub client: Client,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct OsVersionCount {
+    pub os_version: Option<String>,
+    pub count: i64,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct OsVersionList {
+    pub os: String,
+    pub os_version: String,
+    pub list: Vec<(OsInfo, Client)>,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
 pub struct SoftwareInfo {
     pub id: i32,
     pub name: String,

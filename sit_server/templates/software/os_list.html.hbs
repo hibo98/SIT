@@ -1,0 +1,23 @@
+{{> _layout_software-top title="Betriebssystem"}}
+<div class="os-table">
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Anzahl</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each os}}
+            <tr>
+                <td><a href="/software/os/{{this.os}}">{{this.os}}</a></td>
+                <td>{{this.count}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_software-bottom}}

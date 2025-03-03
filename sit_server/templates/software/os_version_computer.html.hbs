@@ -1,0 +1,22 @@
+{{> _layout_software-top title="Betriebssystem"}}
+<div class="os-table">
+    <h1>{{os_name}} - {{os_version}}</h1>
+    <div class="filters">
+
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Computer-Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each os_version_computer}}
+            <tr>
+                <td><a href="/clients/{{this.[1].uuid}}">{{this.[0].computer_name}}.{{this.[0].domain}}</a></td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</div>
+{{> _layout_software-bottom}}

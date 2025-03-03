@@ -1048,4 +1048,44 @@ impl Database {
         Ok(())
     }
 
+    pub fn get_os_list(&self) -> Result<Vec<OsCount>> {
+        let mut conn = self.pool.get()?;
+        Ok(os_info::table
+            .group_by(os_info::os)
+            .select((os_info::os, count_star()))
+            .load::<OsCount>(&mut conn)?)
+    }
+
+    pub fn get_os_client_list(&self, os_name: String) -> Result<Vec<OsList>> {
+        let mut conn = self.pool.get()?;
+        Ok(os_info::table
+            .filter(os_info::os.eq(os_name))
+            .inner_join(client::table)
+            .order_by((os_info::os_version, os_info::computer_name))
+            .load::<OsList>(&mut conn)?)
+    }
+
+    pub fn get_os_versions(&self, os_name: String) -> Result<Vec<OsVersionCount>> {
+        let mut conn = self.pool.get()?;
+        Ok(os_info::table
+            .filter(os_info::os.eq(os_name))
+            .group_by(os_info::os_version)
+            .select((os_info::os_version, count_star()))
+            .load::<OsVersionCount>(&mut conn)?)
+    }
+
+    pub fn get_os_version_client_list(&self, os_name: String, os_version_name: String) ->Result<OsVersionList> {
+        let mut conn = self.pool.get()?;
+        let list = os_info::table
+            .filter(os_info::os.eq(os_name.clone()))
+            .filter(os_info::os_version.eq(os_version_name.clone()))
+            .inner_join(client::table)
+            .order_by(os_info::computer_name)
+            .load::<(OsInfo, Client)>(&mut conn)?;
+        Ok(OsVersionList {
+            os: os_name,
+            os_version: os_version_name,
+            list,
+        })
+    }
 }

@@ -81,6 +81,46 @@ fn software_version(database: &State<Database>, id: i32, user: User) -> Template
     Template::render("software/software_version", context! {})
 }
 
+#[get("/os")]
+fn os_list(database: &State<Database>, user: User) -> Template {
+    let os_list = database.get_os_list().unwrap_or_default();
+    Template::render(
+        "software/os_list",
+        context! { os: os_list, user },
+    )
+}
+
+#[get("/os/<name>")]
+fn os_versions(database: &State<Database>, name: String, user: User) -> Template {
+    let os_version = database.get_os_versions(name);
+    if let Ok(os_version) = os_version {
+        Template::render(
+            "software/os_version",
+            context! { os_version, user },
+        )
+    } else {
+        Template::render("software/software", context! {})
+    }
+}
+
+// #[get("/os/<name>/computer")]
+// fn os_computer(database: &State<Database>, name: String, user: User) -> Template {
+//
+// }
+
+#[get("/os/<name>/<version>")]
+fn os_version_computer(database: &State<Database>, name: String, version: String, user: User) -> Template {
+    let os_version_computer = database.get_os_version_client_list(name, version);
+    if let Ok(os_version_computer) = os_version_computer {
+        Template::render(
+            "software/os_version_computer",
+            context! { os_name: os_version_computer.os, os_verison: os_version_computer.os_version, os_version_computer: os_version_computer.list, user },
+        )
+    } else {
+        Template::render("software/software", context! {})
+    }
+}
+
 #[get("/license")]
 fn license_list(database: &State<Database>, user: User) -> Template {
     let license_info = database.get_license_list().unwrap_or_default();
