@@ -44,4 +44,10 @@ impl Config {
         client_info.set_value("uuid", &uuid.to_string())?;
         Ok(())
     }
+
+    pub fn get_ca_path() -> Result<String> {
+        let settings = RegKey::predef(HKEY_LOCAL_MACHINE)
+            .open_subkey("SOFTWARE\\SCHKOLA gGmbH\\S-IT Client\\Settings")?;
+        Ok(settings.get_value("ca_path")?)
+    }
 }

@@ -1,3 +1,4 @@
+use std::path::Path;
 use anyhow::Result;
 use reqwest::blocking::Client;
 use sit_lib::hardware::{BatteryStatus, HardwareInfoV2};
@@ -141,7 +142,9 @@ impl Server {
     }
 
     fn build_client() -> Result<Client> {
-        let der = std::fs::read("root-ca-cert.der")?;
+        let string_path = Config::get_ca_path()?;
+        let path = Path::new(&string_path);
+        let der = std::fs::read(path)?;
         let cert = reqwest::Certificate::from_der(&der)?;
         Ok(Client::builder()
             .add_root_certificate(cert)
