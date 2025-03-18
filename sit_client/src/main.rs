@@ -37,7 +37,7 @@ mod win_os_info;
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     let mut scheduler = JobScheduler::new();
     COMLibrary::new()?;
-    let db = Database::establish_connection();
+    let db = Database::establish_connection()?;
     let db_update_task = db.clone();
     let db_run_tasks = db.clone();
     scheduler.add(Job::new("0 * * * * * *".parse()?, update_base_info));

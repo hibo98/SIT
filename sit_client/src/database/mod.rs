@@ -1,3 +1,5 @@
+use std::env;
+use anyhow::Result;
 use diesel::{r2d2::{ConnectionManager, Pool}, Connection, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
@@ -15,24 +17,25 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn establish_connection() -> Database {
-        let database_url = "sqlite://./db_client.db";
+    pub fn establish_connection() -> Result<Database> {
+        let mut current_executable = env::current_exe()?;
+        current_executable.pop();
+        let database_url = format!("sqlite://{}/db_client.db", current_executable.as_os_str());
 
-        SqliteConnection::establish(database_url)
+        SqliteConnection::establish(&database_url)
             .unwrap_or_else(|_| panic!("Error connection to {database_url}"))
             .run_pending_migrations(MIGRATIONS)
             .expect("Migrations failed");
 
-        let manager = ConnectionManager::<SqliteConnection>::new(database_url);
+        let manager = ConnectionManager::<SqliteConnection>::new(&database_url);
 
         let pool = Pool::builder()
             .test_on_check_out(true)
-            .build(manager)
-            .expect("Could not build connection pool");
+            .build(manager)?;
 
-        Database {
+        Ok(Database {
             pool
-        }
+        })
     }
 
     pub fn task_manager(&self) -> TaskManager {
