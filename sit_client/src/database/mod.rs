@@ -20,7 +20,7 @@ impl Database {
     pub fn establish_connection() -> Result<Database> {
         let mut current_executable = env::current_exe()?;
         current_executable.pop();
-        let database_url = format!("sqlite://{}/db_client.db", current_executable.as_os_str());
+        let database_url = format!("sqlite://{}/db_client.db", current_executable.to_str().unwrap_or_default());
 
         SqliteConnection::establish(&database_url)
             .unwrap_or_else(|_| panic!("Error connection to {database_url}"))
