@@ -818,7 +818,7 @@ impl Database {
         &self,
         model: &String,
         manufacturer: &String,
-    ) -> Result<Vec<(Client, OsInfo)>> {
+    ) -> Result<Vec<(Client, OsInfo, Bios)>> {
         let mut conn = self.pool.get()?;
         Ok(client::table
             .filter(
@@ -830,8 +830,9 @@ impl Database {
                 ),
             )
             .inner_join(os_info::table)
+            .inner_join(bios::table)
             .order_by(os_info::computer_name)
-            .load::<(Client, OsInfo)>(&mut conn)?)
+            .load::<(Client, OsInfo, Bios)>(&mut conn)?)
     }
 
     pub fn get_client_computer_model(&self, uuid: Uuid) -> Result<Vec<ComputerModel>> {

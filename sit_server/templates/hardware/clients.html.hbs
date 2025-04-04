@@ -5,12 +5,16 @@
         <thead>
             <tr>
                 <th>Computer</th>
+                <th>BIOS-Hersteller</th>
+                <th>BIOS-Name | BIOS-Version</th>
             </tr>
         </thead>
         <tbody>
         {{#each clients}}
             <tr>
                 <td><a href="/clients/{{this.[0].uuid}}">{{this.[1].computer_name}}.{{this.[1].domain}}</a></td>
+                <td>{{this.[2].manufacturer}}</td>
+                <td>{{this.[2].name}} | {{this.[2].version}}</td>
             </tr>
         {{/each}}
         </tbody>
