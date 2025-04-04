@@ -1049,6 +1049,7 @@ impl Database {
         Ok(os_info::table
             .group_by(os_info::os)
             .select((os_info::os, count_star()))
+            .order_by(os_info::os)
             .load::<OsCount>(&mut conn)?)
     }
 
@@ -1067,6 +1068,7 @@ impl Database {
             .filter(os_info::os.eq(os_name))
             .group_by(os_info::os_version)
             .select((os_info::os_version, count_star()))
+            .order_by(os_info::os_version)
             .load::<OsVersionCount>(&mut conn)?)
     }
 
