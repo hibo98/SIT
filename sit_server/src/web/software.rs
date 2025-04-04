@@ -92,11 +92,11 @@ fn os_list(database: &State<Database>, user: User) -> Template {
 
 #[get("/os/<name>")]
 fn os_versions(database: &State<Database>, name: String, user: User) -> Template {
-    let os_version = database.get_os_versions(name);
+    let os_version = database.get_os_versions(name.clone());
     if let Ok(os_version) = os_version {
         Template::render(
             "software/os_version",
-            context! { os_version, user },
+            context! { os_name: name, os_version, user },
         )
     } else {
         Template::render("software/os_version", context! {})
