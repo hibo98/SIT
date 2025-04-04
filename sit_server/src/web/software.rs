@@ -122,7 +122,7 @@ fn os_version_computer(database: &State<Database>, name: String, version: String
     if let Ok(os_version_computer) = os_version_computer {
         Template::render(
             "software/os_version_computer",
-            context! { os_name: os_version_computer.os, os_verison: os_version_computer.os_version, os_version_computer: os_version_computer.list, user },
+            context! { os_name: os_version_computer.os, os_version: os_version_computer.os_version, os_version_computer: os_version_computer.list, user },
         )
     } else {
         Template::render("software/os_version_computer", context! {})
