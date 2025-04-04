@@ -818,21 +818,16 @@ impl Database {
         &self,
         model: &String,
         manufacturer: &String,
-    ) -> Result<Vec<(Client, OsInfo, Bios)>> {
+    ) -> Result<Vec<(Client, OsInfo, Bios, ComputerModel)>> {
         let mut conn = self.pool.get()?;
         Ok(client::table
-            .filter(
-                client::id.eq_any(
-                    computer_model::table
-                        .select(computer_model::client_id)
-                        .filter(computer_model::model_family.eq(model))
-                        .filter(computer_model::manufacturer.eq(manufacturer)),
-                ),
-            )
             .inner_join(os_info::table)
             .inner_join(bios::table)
+            .inner_join(computer_model::table)
+            .filter(computer_model::model_family.eq(model))
+            .filter(computer_model::manufacturer.eq(manufacturer))
             .order_by(os_info::computer_name)
-            .load::<(Client, OsInfo, Bios)>(&mut conn)?)
+            .load::<(Client, OsInfo, Bios, ComputerModel)>(&mut conn)?)
     }
 
     pub fn get_client_computer_model(&self, uuid: Uuid) -> Result<Vec<ComputerModel>> {
