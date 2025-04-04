@@ -99,14 +99,22 @@ fn os_versions(database: &State<Database>, name: String, user: User) -> Template
             context! { os_version, user },
         )
     } else {
-        Template::render("software/software", context! {})
+        Template::render("software/os_version", context! {})
     }
 }
 
-// #[get("/os/<name>/computer")]
-// fn os_computer(database: &State<Database>, name: String, user: User) -> Template {
-//
-// }
+#[get("/os/<name>/computer")]
+fn os_computer(database: &State<Database>, name: String, user: User) -> Template {
+    let os_computer = database.get_os_client_list(name.clone());
+    if let Ok(os_computer) = os_computer {
+        Template::render(
+            "software/os_computer",
+            context! { os_name: name, os_computer: os_computer, user },
+        )
+    } else {
+        Template::render("software/os_computer", context! {})
+    }
+}
 
 #[get("/os/<name>/<version>")]
 fn os_version_computer(database: &State<Database>, name: String, version: String, user: User) -> Template {
@@ -117,7 +125,7 @@ fn os_version_computer(database: &State<Database>, name: String, version: String
             context! { os_name: os_version_computer.os, os_verison: os_version_computer.os_version, os_version_computer: os_version_computer.list, user },
         )
     } else {
-        Template::render("software/software", context! {})
+        Template::render("software/os_version_computer", context! {})
     }
 }
 
@@ -151,6 +159,10 @@ pub fn routes() -> Vec<Route> {
         software,
         software_computer,
         software_version,
+        os_list,
+        os_versions,
+        os_computer,
+        os_version_computer,
         license_list,
         license_computer,
         catch_all
