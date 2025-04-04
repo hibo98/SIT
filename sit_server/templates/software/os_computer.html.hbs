@@ -15,7 +15,7 @@
         {{#each os_computer}}
             <tr>
                 <td><a href="/clients/{{this.[1].uuid}}">{{this.[0].computer_name}}.{{this.[0].domain}}</a></td>
-                <td>{{this.[0].os_version}}</td>
+                <td><a href="/software/os/{{this.[0].os}}/version/{{this.[0].os_version}}">{{this.[0].os_version}}</a></td>
             </tr>
         {{/each}}
         </tbody>

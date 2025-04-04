@@ -15,7 +15,7 @@
         <tbody>
         {{#each os_version}}
             <tr>
-                <td>{{this.os_version}}</td>
+                <td><a href="/software/os/{{os_name}}/version/{{this.os_version}}">{{this.os_version}}</a></td>
                 <td>{{this.count}}</td>
             </tr>
         {{/each}}

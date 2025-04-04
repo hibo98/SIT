@@ -116,7 +116,7 @@ fn os_computer(database: &State<Database>, name: String, user: User) -> Template
     }
 }
 
-#[get("/os/<name>/<version>")]
+#[get("/os/<name>/version/<version>")]
 fn os_version_computer(database: &State<Database>, name: String, version: String, user: User) -> Template {
     let os_version_computer = database.get_os_version_client_list(name, version);
     if let Ok(os_version_computer) = os_version_computer {
