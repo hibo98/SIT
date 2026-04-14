@@ -11,10 +11,10 @@ default-target = "x86_64-pc-windows-gnu"
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-wmi = "0.15"
-winreg = { version = "0.55", features = ["serialization-serde"] }
+wmi = "0.17"
+winreg = { version = "0.56", features = ["serialization-serde"] }
 sit_lib = { path = "../sit_lib" }
-reqwest = { version = "0.12", features = ["json", "blocking"] }
+reqwest = { version = "0.13", features = ["json", "blocking"] }
 job_scheduler_ng = "2"
 anyhow = "1"
 uuid = { version = "1", features = ["serde"] }
@@ -22,7 +22,7 @@ windows-service = "0.8"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 clap = "4"
 walkdir = "2"
-windows = { version = "0.61", features = [
+windows = { version = "0.62", features = [
     "Win32_Devices_DeviceAndDriverInstallation",
     "Win32_Foundation",
     "Win32_Security",
@@ -35,4 +35,4 @@ windows = { version = "0.61", features = [
 ] }
 diesel = { version = "2", features = ["sqlite", "r2d2", "numeric"] }
 diesel_migrations = { version = "2", features = ["sqlite"] }
-rusqlite = { version = "0.32", features = ["bundled"] }
+#rusqlite = { version = "0.32", features = ["bundled"] }

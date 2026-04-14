@@ -21,7 +21,7 @@ impl Licenses {
         let win_curr_ver = RegKey::predef(HKEY_LOCAL_MACHINE)
             .open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")?;
         let name: String = win_curr_ver.get_value("ProductName")?;
-        let mut key: Vec<u8> = win_curr_ver.get_raw_value("DigitalProductId")?.bytes;
+        let mut key: Vec<u8> = win_curr_ver.get_raw_value("DigitalProductId")?.bytes.to_vec();
 
         let is_win8 = (key[66] as f64 / 6_f64).ceil() as u8 & 1;
         key[66] = (key[66] & 0xf7) | ((is_win8 & 2) * 4);

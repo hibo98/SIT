@@ -27,6 +27,6 @@ anyhow = "1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 bigdecimal = { version = "0.4", features = ["serde"] }
 urlencoding = "2"
-password-hash = { version = "0.5" }
+password-hash = { version = "0.6" }
 argon2 = { version = "0.5", features = ["password-hash"] }
-rand = { version = "0.9" }
+rand = { version = "0.10" }
