@@ -238,7 +238,9 @@ fn main() -> Result<()> {
                 };
                 println!("{:#?}", res);
             } else if func == *"power-status" {
-                Hardware::get_battery_status()?;
+                println!("{:#?}", Hardware::get_battery_status());
+            } else if func == *"secure-boot" {
+                println!("{:#?}", SecureBoot::get_secure_boot_status());
             }
         }
         Some(("update", sub_matches)) => {
