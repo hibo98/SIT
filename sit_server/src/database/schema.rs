@@ -156,6 +156,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    secure_boot (client_id) {
+        client_id -> Int4,
+        available_updates -> Nullable<Int8>,
+        available_updates_policy -> Nullable<Int8>,
+        uefi_secure_boot_enabled -> Nullable<Int8>,
+        uefi_ca_2023_status -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
     software_info (id) {
         id -> Int4,
         name -> Text,
@@ -238,6 +248,7 @@ diesel::joinable!(network_adapter -> client (client_id));
 diesel::joinable!(network_adapter_ip -> network_adapter (adapter_id));
 diesel::joinable!(os_info -> client (client_id));
 diesel::joinable!(processor -> client (client_id));
+diesel::joinable!(secure_boot -> client (client_id));
 diesel::joinable!(software_list -> client (client_id));
 diesel::joinable!(software_list -> software_version (software_id));
 diesel::joinable!(software_version -> software_info (software_id));
@@ -263,6 +274,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     network_adapter_ip,
     os_info,
     processor,
+    secure_boot,
     software_info,
     software_list,
     software_version,

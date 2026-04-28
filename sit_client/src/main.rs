@@ -18,6 +18,7 @@ use wmi::{COMLibrary, WMIConnection};
 use crate::config::Config;
 use crate::hardware::Hardware;
 use crate::licenses::Licenses;
+use crate::secure_boot::SecureBoot;
 use crate::server::Server;
 use crate::software::Software;
 use crate::system_status::SystemStatus;
@@ -33,6 +34,7 @@ mod software;
 mod system_status;
 mod win_core;
 mod win_os_info;
+mod secure_boot;
 
 fn internal_main(shutdown_rx: Option<Receiver<()>>) -> Result<()> {
     let mut scheduler = JobScheduler::new();
@@ -109,13 +111,28 @@ fn update_rich_info() {
     }
     let licenses = Licenses::collect_licenses();
     if let Ok(licenses) = licenses {
-        Server::licenses(&licenses).unwrap();
+        let req = Server::licenses(&licenses);
+        if let Err(e) = req {
+            println!("Server::licenses {}", e);
+        }
     } else if let Err(e) = licenses {
         println!("Licenses::collect_licenses {}", e);
     }
+    let secure_boot = SecureBoot::get_secure_boot_status();
+    if let Ok(secure_boot) = secure_boot {
+        let req = Server::secure_boot_status(&secure_boot);
+        if let Err(e) = req {
+            println!("Server::secure_boot_status {}", e);
+        }
+    } else if let Err(e) = secure_boot {
+        println!("SecureBoot::get_secure_boot_status {}", e);
+    }
     let battery_status = Hardware::get_battery_status();
     if let Ok(battery_status) = battery_status {
-        Server::battery_status(&battery_status).unwrap();
+        let req = Server::battery_status(&battery_status);
+        if let Err(e) = req {
+            println!("Server::battery_status {}", e);
+        }
     } else if let Err(e) = battery_status {
         println!("Hardware::get_battery_status {}", e);
     }

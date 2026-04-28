@@ -16,7 +16,7 @@ use sit_lib::os::WinOsInfo;
 use sit_lib::software::SoftwareLibrary;
 use sit_lib::system_status::VolumeList;
 use uuid::Uuid;
-
+use sit_lib::secure_boot::SecureBootStatus;
 use crate::database::model::*;
 use crate::database::schema::*;
 use self::domain_user::UserManager;
@@ -1019,7 +1019,7 @@ impl Database {
         Ok(())
     }
 
-    pub fn update_battery_status(&self, client_id: i32, battery_status: BatteryStatus) -> Result<()>{
+    pub fn update_battery_status(&self, client_id: i32, battery_status: BatteryStatus) -> Result<()> {
         let mut conn = self.pool.get()?;
         conn.transaction::<(), diesel::result::Error, _>(|c| {
             diesel::delete(battery::table)
@@ -1039,6 +1039,26 @@ impl Database {
                     })
                     .execute(c)?;
             }
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn update_secure_boot_status(&self, client_id: i32, secure_boot_status: SecureBootStatus) -> Result<()> {
+        let mut conn = self.pool.get()?;
+        conn.transaction::<(), diesel::result::Error, _>(|c| {
+            diesel::delete(secure_boot::table)
+                .filter(secure_boot::client_id.eq(client_id))
+                .execute(c)?;
+            diesel::insert_into(secure_boot::table)
+                .values(NewSecureBoot {
+                    client_id: &client_id,
+                    available_updates: secure_boot_status.available_updates.map(|i| i as i64),
+                    available_updates_policy: secure_boot_status.available_updates_policy.map(|i| i as i64),
+                    uefi_secure_boot_enabled: secure_boot_status.uefi_secure_boot_enabled.map(|i| i as i64),
+                    uefi_ca_2023_status: secure_boot_status.uefi_ca_2023_status,
+                })
+                .execute(c)?;
             Ok(())
         })?;
         Ok(())

@@ -4,6 +4,7 @@ use reqwest::blocking::Client;
 use sit_lib::hardware::{BatteryStatus, HardwareInfoV2};
 use sit_lib::licenses::LicenseBundle;
 use sit_lib::os::{UserProfiles, WinOsInfo};
+use sit_lib::secure_boot::SecureBootStatus;
 use sit_lib::server::Register;
 use sit_lib::software::SoftwareLibrary;
 use sit_lib::system_status::VolumeList;
@@ -113,6 +114,18 @@ impl Server {
                 Config::get_uuid()?.unwrap()
             ))
             .json(battery_status)
+            .send();
+        Ok(())
+    }
+
+    pub fn secure_boot_status(secure_boot_status: &SecureBootStatus) -> Result<()> {
+        let _request = Self::build_client()?
+            .post(format!(
+                "{}/api/v1/status/{}/secure_boot",
+                Config::get_web_api()?,
+                Config::get_uuid()?.unwrap()
+            ))
+            .json(secure_boot_status)
             .send();
         Ok(())
     }

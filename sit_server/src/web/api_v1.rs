@@ -17,7 +17,7 @@ use sit_lib::task::Task;
 use sit_lib::task::TaskBundle;
 use sit_lib::task::TaskUpdate;
 use uuid::Uuid;
-
+use sit_lib::secure_boot::SecureBootStatus;
 use crate::database::Database;
 
 #[post("/register", data = "<input>")]
@@ -212,6 +212,33 @@ async fn status_battery(
     }
 }
 
+#[post("/status/<uuid>/secure_boot", data = "<input>")]
+async fn secure_boot(
+    database: &State<Database>,
+    uuid: Uuid,
+    input: Json<SecureBootStatus>,
+) -> status::Custom<()> {
+    match database.get_client(&uuid) {
+        Ok(client) => match database.update_secure_boot_status(client.id, input.0) {
+            Ok(_) => status::Custom(Status::Ok, ()),
+            Err(error) => {
+                println!(
+                    "[ERROR] In api_v1 /status/{}/secure_boot update_battery_status {:?}",
+                    uuid, error
+                );
+                status::Custom(Status::InternalServerError, ())
+            }
+        },
+        Err(error) => {
+            println!(
+                "[ERROR] In api_v1 /status/{}/secure_boot get_client {:?}",
+                uuid, error
+            );
+            status::Custom(Status::InternalServerError, ())
+        }
+    }
+}
+
 #[post("/licenses/<uuid>", data = "<input>")]
 async fn licenses(
     database: &State<Database>,
@@ -313,5 +340,6 @@ pub fn routes() -> Vec<Route> {
         licenses,
         tasks_get,
         task_update,
+        secure_boot,
     ]
 }

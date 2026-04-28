@@ -5,3 +5,4 @@ pub mod server;
 pub mod software;
 pub mod system_status;
 pub mod task;
+pub mod secure_boot;

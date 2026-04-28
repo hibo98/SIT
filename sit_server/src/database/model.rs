@@ -531,3 +531,22 @@ pub struct Battery {
     pub designed_capacity: i64,
     pub full_charged_capacity: i64,
 }
+
+#[derive(Insertable)]
+#[diesel(table_name = secure_boot)]
+pub struct NewSecureBoot <'a> {
+    pub client_id: &'a i32,
+    pub available_updates: Option<i64>,
+    pub available_updates_policy: Option<i64>,
+    pub uefi_secure_boot_enabled: Option<i64>,
+    pub uefi_ca_2023_status: Option<String>,
+}
+
+#[derive(Clone, Debug, Queryable, Serialize)]
+pub struct SecureBoot {
+    pub client_id: i32,
+    pub available_updates: Option<i64>,
+    pub available_updates_policy: Option<i64>,
+    pub uefi_secure_boot_enabled: Option<i64>,
+    pub uefi_ca_2023_status: Option<String>,
+}
