@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use winreg::enums::{HKEY_LOCAL_MACHINE};
 use winreg::{RegKey};
 use sit_lib::secure_boot::SecureBootStatus;
