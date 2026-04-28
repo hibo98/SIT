@@ -1,8 +1,8 @@
 use anyhow::{bail, Result};
 use argon2::Argon2;
+use argon2::password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, SaltString};
 use chrono::{Duration, NaiveDateTime, Utc};
-use password_hash::{rand_core::OsRng, PasswordHash, SaltString};
-use rand::{distr::Alphanumeric, rng, Rng};
+use rand::{distr::Alphanumeric, rng, RngExt};
 use rocket::{
     http::{private::cookie::Expiration, Cookie, CookieJar, Status},
     outcome::try_outcome,
@@ -99,8 +99,8 @@ pub fn check_password(db: &Database, username: &str, password: &str) -> Result<U
 
 pub fn set_new_password(db: &Database, username: &str, new_password: &str) -> Result<()> {
     let user = db.get_auth_user_by_username(username)?;
-    let salt = SaltString::generate(OsRng);
-    if let Ok(hash) = PasswordHash::generate(Argon2::default(), new_password, &salt) {
+    let salt = SaltString::generate(&mut OsRng);
+    if let Ok(hash) = Argon2::default().hash_password(new_password.as_ref(), &salt) {
         let password_hash_string = hash.to_string();
         db.set_auth_user_password(user.id, &password_hash_string)?;
         Ok(())
@@ -110,8 +110,8 @@ pub fn set_new_password(db: &Database, username: &str, new_password: &str) -> Re
 }
 
 pub fn create_new_user(db: &Database, username: &str, password: &str) -> Result<()> {
-    let salt = SaltString::generate(OsRng);
-    if let Ok(hash) = PasswordHash::generate(Argon2::default(), password, &salt) {
+    let salt = SaltString::generate(&mut OsRng);
+    if let Ok(hash) = Argon2::default().hash_password(password.as_ref(), &salt) {
         let password_hash_string = hash.to_string();
         db.new_auth_user(username, &password_hash_string)?;
         Ok(())
